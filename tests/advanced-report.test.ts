@@ -45,6 +45,7 @@ test('advanced generation makes one explicit call, retains source and exports re
     const request = JSON.parse(String(init?.body));
     const payload = JSON.parse(request.messages[1].content);
     assert.deepEqual(payload.units, units);
+    assert.deepEqual(Object.keys(payload), ['units']);
     assert.equal(request.thinking.type, 'disabled');
     assert.equal(request.response_format.type, 'json_object');
     return completion(value);

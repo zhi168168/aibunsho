@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-05T09:16:08.245Z",
+  "method": "Raw source text and editable prompts; no local measurements supplied to model",
+  "basic": {
+    "score": 62,
+    "assessment": "mixed_patterns",
+    "dimensions": 4,
+    "quotes": 6,
+    "quotesValid": true
+  },
+  "advanced": {
+    "sections": 3,
+    "reviewed": 3,
+    "quotesValid": true,
+    "suggestions": 3
+  },
+  "elapsedMs": 10945
+}

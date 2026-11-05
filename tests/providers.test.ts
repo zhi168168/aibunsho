@@ -40,8 +40,8 @@ test('DeepSeek requests JSON and returns only excerpts present in the actual inp
     assert.equal(body.thinking.type, 'disabled');
     const payload = JSON.parse(body.messages[1].content);
     assert.equal(payload.text, text);
-    assert.equal(payload.measurements.signals.length, 8);
-    assert.equal('score' in payload.measurements, false);
+    assert.equal('measurements' in payload, false);
+    assert.deepEqual(Object.keys(payload).sort(), ['task', 'text']);
     assert.equal(body.messages.length, 2);
     return completion(validReview);
   }) as typeof fetch);
