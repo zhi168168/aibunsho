@@ -1,0 +1,327 @@
+{
+  "baseline": "c144512",
+  "version": "japanese-style-2.0",
+  "scope": "Six handcrafted engineering fixtures plus one sourced historical literary excerpt. Not representative accuracy evaluation. No FPR/TPR claim.",
+  "historicalSource": {
+    "title": "吾輩は猫である",
+    "author": "夏目漱石",
+    "url": "https://www.aozora.gr.jp/cards/000148/files/789_14547.html",
+    "provenance": "Published beginning in 1905; pre-LLM historical text. One literary excerpt is not representative of modern Japanese."
+  },
+  "results": [
+    {
+      "id": "common-connectors",
+      "characters": 118,
+      "beforeStyleScore": 47,
+      "afterStyleScore": 9,
+      "beforePhraseScore": 100,
+      "afterPhraseScore": 0,
+      "limited": true,
+      "cautions": []
+    },
+    {
+      "id": "formal-template",
+      "characters": 177,
+      "beforeStyleScore": 71,
+      "afterStyleScore": 48,
+      "beforePhraseScore": 0,
+      "afterPhraseScore": 0,
+      "limited": true,
+      "cautions": [
+        "契約・学術的な表現があります。定型句や文末の一致だけではAIの根拠になりません。"
+      ]
+    },
+    {
+      "id": "repeated-content",
+      "characters": 336,
+      "beforeStyleScore": 75,
+      "afterStyleScore": 79,
+      "beforePhraseScore": 0,
+      "afterPhraseScore": 0,
+      "limited": false,
+      "cautions": []
+    },
+    {
+      "id": "structured-example",
+      "characters": 318,
+      "beforeStyleScore": 58,
+      "afterStyleScore": 30,
+      "beforePhraseScore": 100,
+      "afterPhraseScore": 69,
+      "limited": false,
+      "cautions": []
+    },
+    {
+      "id": "personal-example",
+      "characters": 318,
+      "beforeStyleScore": 16,
+      "afterStyleScore": 7,
+      "beforePhraseScore": 0,
+      "afterPhraseScore": 0,
+      "limited": false,
+      "cautions": [
+        "引用・出典の表記があります。引用部分と執筆部分を区別して読んでください。"
+      ]
+    },
+    {
+      "id": "non-japanese",
+      "characters": 411,
+      "beforeStyleScore": 50,
+      "afterStyleScore": 41,
+      "beforePhraseScore": 0,
+      "afterPhraseScore": 0,
+      "limited": true,
+      "cautions": [
+        "日本語の割合が低く、日本語向けルールでは十分に評価できません。"
+      ]
+    },
+    {
+      "id": "historical-literary-excerpt",
+      "characters": 684,
+      "beforeStyleScore": 18,
+      "afterStyleScore": 9,
+      "beforePhraseScore": 0,
+      "afterPhraseScore": 0,
+      "limited": false,
+      "cautions": []
+    }
+  ],
+  "live": [
+    {
+      "id": "structured-example",
+      "milliseconds": 6564,
+      "result": {
+        "provider": "DeepSeek",
+        "modelVersion": "deepseek-flash",
+        "sandbox": false,
+        "reviewVersion": "evidence-review-2.0",
+        "genre": "general",
+        "score": 62,
+        "assessment": "mixed_patterns",
+        "summary": "人工知能の役割・効率化・価値創出・倫理・教育・企業・対話と、一般的な論点を均等に並べた1段落の文章。文長が35字前後で揃い、接続詞と「〜ことができます」「〜ことが重要/不可欠です」の型が反復する点は定型性を支持する。一方、具体例・数値・引用が皆無で主張と根拠の対応が薄く、汎用論説の雛形とも読めるため、AI使用の断定はできない。",
+        "observations": [
+          {
+            "text": "人工知能は、現代社会において重要な役割を果たしています。",
+            "reason": "話題提示の定型句で、具体的な対象や状況を欠く一般的な書き出し。",
+            "direction": "supports",
+            "dimension": "expression"
+          },
+          {
+            "text": "さまざまな分野で活用することで、業務の効率化を実現することができます。さらに、大量のデータを分析することで、新たな価値を創出することができます。",
+            "reason": "「〜ことで…ことができます」の同型文が接続詞を挟んで連続し、論述型の反復が見られる。",
+            "direction": "supports",
+            "dimension": "expression"
+          },
+          {
+            "text": "一方で、個人情報の保護や倫理的な課題への対応も重要です。したがって、技術の発展と適切なルールの整備を両立させることが不可欠です。",
+            "reason": "対比と結論の接続詞を定位置に置く教科書的な運び。定型的だが論説の基本構成でもある。",
+            "direction": "supports",
+            "dimension": "structure"
+          },
+          {
+            "text": "加えて、教育の現場においても、一人ひとりに合った学習支援を提供することができます。企業においては、従業員の知識や経験と技術を組み合わせることが重要です。",
+            "reason": "教育・企業と分野を並列に足すだけで、各主張を支える説明がない。",
+            "direction": "supports",
+            "dimension": "specificity"
+          },
+          {
+            "text": "総じて、人工知能の可能性を十分に引き出すには、社会全体で継続的に対話することが不可欠です。",
+            "reason": "「総じて」で締める要約型の結び。汎用的なまとめ方で、独自の根拠を伴わない。",
+            "direction": "neutral",
+            "dimension": "structure"
+          },
+          {
+            "text": "このように、人工知能の活用には、多角的な視点からの検討が重要です。",
+            "reason": "前段の要約を「このように」で受ける定型句。内容の重複気味な締めくくり。",
+            "direction": "neutral",
+            "dimension": "expression"
+          }
+        ],
+        "dimensions": [
+          {
+            "id": "structure",
+            "score": 70,
+            "explanation": "話題を列挙するだけで各論点の掘り下げがなく、同型の主張が並列する。ただし一般的な概説文の構成とも解釈できる。"
+          },
+          {
+            "id": "expression",
+            "score": 75,
+            "explanation": "「〜ことができます」「〜ことが重要/不可欠です」と接続詞の列挙が反復。定型的だが、丁寧な解説文の常套表現でもある。"
+          },
+          {
+            "id": "specificity",
+            "score": 80,
+            "explanation": "具体例・数値・出典が一切なく、抽象的な主張のみ。ただし入門的な概説では具体性の欠如は普通に起こる。"
+          },
+          {
+            "id": "consistency",
+            "score": 55,
+            "explanation": "文体と論調は一貫して平坦。切り替わりはないが、それは整った文章の特徴でもあり単独では根拠にならない。"
+          }
+        ],
+        "limitations": [
+          "1段落のみで段落構成の指標が使えず、構成面の判断材料が乏しい。",
+          "具体例や数値の欠如は概説文でも普通に起こり、AI使用の証拠にはならない。",
+          "文長の均一さは校正された文章でも生じ、書き手の属性を特定できない。",
+          "出典や事実の真偽は本レビューでは確認していない。"
+        ],
+        "scanId": "0b7fbeb1-b3d6-456b-bf64-a2cc26dd1e4e",
+        "analyzedAt": "2026-11-05T08:22:27.668Z"
+      }
+    },
+    {
+      "id": "personal-example",
+      "milliseconds": 5664,
+      "result": {
+        "provider": "DeepSeek",
+        "modelVersion": "deepseek-flash",
+        "sandbox": false,
+        "reviewVersion": "evidence-review-2.0",
+        "genre": "creative",
+        "score": 22,
+        "assessment": "few_patterns",
+        "summary": "一人称の喫茶店での体験を綴る随筆風の短文。文ごとに場面・会話・心情が移り、語彙の多様性が高く、同一起頭や同型の論述反復は目立たない。平均文長はやや長めだが標準偏差もあり均質とは言えない。具体的な描写と会話が混在し、定型的な構成の根拠は乏しい。ただし一段落構成で段落変化の指標は使えず、材料が短いため判断は限定的。",
+        "observations": [
+          {
+            "text": "昨日、駅前の小さな喫茶店に寄った。ずっと気になっていた、青いドアの店だ。",
+            "reason": "具体的な場所と店の特徴を短く提示し、体験談として自然な導入になっている。",
+            "direction": "counter",
+            "dimension": "specificity"
+          },
+          {
+            "text": "「雨、降りそうですね」と言われて外を見ると、さっきまで晴れていた空が真っ暗。",
+            "reason": "会話と情景を組み合わせた叙述で、定型的な説明文の反復とは異なる運び。",
+            "direction": "counter",
+            "dimension": "expression"
+          },
+          {
+            "text": "結局、雨が止むまで二杯も飲んでしまったけれど、あの時間は案外悪くなかった。",
+            "reason": "心情を控えめに述べる随筆的な表現で、機械的な結論の反復とは言い難い。",
+            "direction": "counter",
+            "dimension": "consistency"
+          },
+          {
+            "text": "「三十年前はね」と店主が話しかけてきたけど、電車の時間が迫っていて、その先は聞けずじまい。",
+            "reason": "会話を途中で切る構成は体験談らしいが、AIも生成可能で人間の証明にはならない。",
+            "direction": "neutral",
+            "dimension": "structure"
+          },
+          {
+            "text": "今の大きなビルの場所には、何もない原っぱが広がっていた。",
+            "reason": "過去と現在の対比を具体的に描く一文で、抽象的な定型句への依存は見られない。",
+            "direction": "counter",
+            "dimension": "specificity"
+          }
+        ],
+        "dimensions": [
+          {
+            "id": "structure",
+            "score": 20,
+            "explanation": "一段落の時系列随筆で、同じ主張の反復や定型的な段落構成は見られない。段落指標は算出不能。"
+          },
+          {
+            "id": "expression",
+            "score": 25,
+            "explanation": "文末や冒頭の反復が少なく、語彙多様性も高い。会話文と地の文の切替が自然で、同型論述の反復は乏しい。"
+          },
+          {
+            "id": "specificity",
+            "score": 30,
+            "explanation": "青いドア、四席、二杯、三十年前など具体的描写がある。数値詳細は少ないが体験に即した記述で、抽象的な水増しは見られない。"
+          },
+          {
+            "id": "consistency",
+            "score": 25,
+            "explanation": "過去の回想から来週への展望へと一貫した語り口。文体の急な切替はないが、短いため一貫性の判断材料は限られる。"
+          }
+        ],
+        "limitations": [
+          "318字と短く、文体傾向の判断材料が限られる。",
+          "一段落のため段落構成の指標が算出できない。",
+          "会話や具体描写はAIも生成でき、人間の証明にならない。",
+          "出典や事実の真偽は本レビューでは確認できない。",
+          "引用・出典の表記があります。引用部分と執筆部分を区別して読んでください。"
+        ],
+        "scanId": "4cd06785-c9a4-44ee-888b-90de73b1bb6b",
+        "analyzedAt": "2026-11-05T08:22:33.332Z"
+      }
+    },
+    {
+      "id": "historical-literary-excerpt",
+      "milliseconds": 6142,
+      "result": {
+        "provider": "DeepSeek",
+        "modelVersion": "deepseek-flash",
+        "sandbox": false,
+        "reviewVersion": "evidence-review-2.0",
+        "genre": "creative",
+        "score": null,
+        "assessment": "uncertain",
+        "summary": "『吾輩は猫である』冒頭の既知の文芸作品で、一人称の語り・時代特有の語彙・比喩や感情が連続する。文の長さが比較的揃い文末の反復がやや見られるが、これは地の文の語り口として自然で、定型性を強く示す独立根拠は乏しい。段落が一つしかなく構成指標も使えないため、AI使用の有無は判断できない。",
+        "observations": [
+          {
+            "text": "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。",
+            "reason": "短い文の連続と反復的な語り出しは定型性を連想させるが、作品冒頭の著名な文体でもある。",
+            "direction": "neutral",
+            "dimension": "expression"
+          },
+          {
+            "text": "この時妙なものだと思った感じが今でも残っている。第一毛をもって装飾されべきはずの顔がつるつるしてまるで薬缶だ。",
+            "reason": "比喩と感覚的描写が具体的で、機械的な一般論の反復とは異なる。",
+            "direction": "counter",
+            "dimension": "specificity"
+          },
+          {
+            "text": "そうしてその穴の中から時々ぷうぷうと煙を吹く。どうも咽せぽくて実に弱った。",
+            "reason": "擬音や感情表現が混じり、画一的な説明文の型から外れる。",
+            "direction": "counter",
+            "dimension": "expression"
+          },
+          {
+            "text": "書生が動くのか自分だけが動くのか分らないが無暗に眼が廻る。胸が悪くなる。",
+            "reason": "体感の描写が続き、文末も短く変化しており、単調な反復とは言い切れない。",
+            "direction": "counter",
+            "dimension": "consistency"
+          },
+          {
+            "text": "ふと気が付いて見ると書生はいない。たくさんおった兄弟が一疋も見えぬ。肝心の母親さえ姿を隠してしまった。",
+            "reason": "場面転換が唐突で、整った論理展開よりも語りの揺らぎが見られる。",
+            "direction": "counter",
+            "dimension": "structure"
+          }
+        ],
+        "dimensions": [
+          {
+            "id": "structure",
+            "score": 30,
+            "explanation": "一段落で段落構成の比較ができず、話題は見聞から記憶へ自然に流れる。反復的な構成の根拠は弱い。"
+          },
+          {
+            "id": "expression",
+            "score": 45,
+            "explanation": "「である」「た」調の文末が続き均質だが、猫の視点の語り口として説明可能で、接続表現の定型も目立たない。"
+          },
+          {
+            "id": "specificity",
+            "score": 55,
+            "explanation": "薬缶の比喩や煙草・書生など具体的描写が多い。創作の描写として自然で、定型性の根拠にはなりにくい。"
+          },
+          {
+            "id": "consistency",
+            "score": 40,
+            "explanation": "一人称の語りと文体は一貫しているが、場面転換や記憶の混在は文学的表现として説明できる。"
+          }
+        ],
+        "limitations": [
+          "短さ・根拠不足・特徴の混在により、総合スコアの表示を保留しました。",
+          "既知の文芸作品であり、本文だけから生成主体は判断できない。",
+          "段落が一つで構成指標が使えず、比較材料が不足している。",
+          "文末の反復は日本語の地の文として一般的で、AIの証拠にならない。",
+          "出典や事実の真偽はこのレビューでは確認していない。"
+        ],
+        "scanId": "c52a24d8-7d46-4403-b194-7339eda51f86",
+        "analyzedAt": "2026-11-05T08:24:06.772Z"
+      }
+    }
+  ]
+}

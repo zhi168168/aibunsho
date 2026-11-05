@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createDeepSeekClient } from '../server/deepseek';
+import { createDeepSeekClient, normalizeReview } from '../server/deepseek';
 import { createCopyleaksClient, DetectionError, handleDetection } from '../api/detect';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { modelReport } from '../src/lib/model';
 const text = '日本語の文章を確認します。'.repeat(30);
-const validReview = { score: 50, assessment: 'uncertain', summary: '定型的な表現がありますが、AI利用は断定できません。', observations: [{ text: '日本語の文章を確認します。', reason: '同じ表現が繰り返されています。' }, { text: '原文にない引用です。', reason: 'この引用は除外されます。' }] };
+const dimensions = ['structure', 'expression', 'specificity', 'consistency'].map(id => ({ id, score: 50, explanation: '文章の特徴には別の解釈もあり、AI使用は証明できません。' }));
+const validReview = { score: null, assessment: 'uncertain', genre: 'general', summary: '定型的な表現がありますが、AI利用は断定できません。', dimensions, limitations: ['文体だけでは作成方法を特定できません。'], observations: [{ text: '日本語の文章を確認します。', reason: '同じ表現が繰り返されています。', direction: 'supports', dimension: 'structure' }, { text: '原文にない引用です。', reason: 'この引用は除外されます。', direction: 'counter', dimension: 'specificity' }] };
 const completion = (content: unknown, finish_reason = 'stop') => new Response(JSON.stringify({ model: 'deepseek-flash', choices: [{ finish_reason, message: { content: JSON.stringify(content) } }] }), { status: 200 });
 
 test('API status reads the supplied current configuration without exposing credentials', async () => {
@@ -37,12 +38,16 @@ test('DeepSeek requests JSON and returns only excerpts present in the actual inp
     const body = JSON.parse(String(init?.body));
     assert.equal(body.response_format.type, 'json_object');
     assert.equal(body.thinking.type, 'disabled');
-    assert.equal(JSON.parse(body.messages[1].content).text, text);
+    const payload = JSON.parse(body.messages[1].content);
+    assert.equal(payload.text, text);
+    assert.equal(payload.measurements.signals.length, 8);
+    assert.equal('score' in payload.measurements, false);
+    assert.equal(body.messages.length, 2);
     return completion(validReview);
   }) as typeof fetch);
   const result = await client(text, 'unit-test-key');
   assert.equal(calls, 1);
-  assert.equal(result.score, 50);
+  assert.equal(result.score, null);
   assert.equal(result.observations.length, 1);
   assert.equal(result.provider, 'DeepSeek');
   assert.ok(modelReport(result).includes('AI生成確率や検出精度ではありません'));
@@ -60,6 +65,7 @@ test('DeepSeek rejects missing credentials and short text without sending a requ
   const client = createDeepSeekClient((async () => { called = true; return completion(validReview); }) as typeof fetch);
   await assert.rejects(() => client(text), DetectionError);
   await assert.rejects(() => client('短い', 'unit-test-key'), DetectionError);
+  await assert.rejects(() => client('。'.repeat(150), 'unit-test-key'), e => e instanceof DetectionError && e.status === 400);
   assert.equal(called, false);
 });
 test('upstream failures are sanitized and paid calls are never automatically retried', async () => {
@@ -88,4 +94,47 @@ test('Copyleaks reuses authentication and retains the real sandbox flag', async 
   assert.equal(first.sandbox, true);
   assert.equal(first.sections[0].excerpts[0].text, text.slice(0, 10));
   assert.ok(modelReport(first).includes('実際の文章の判定ではありません'));
+});
+
+const evidenceText = '人工知能は現代社会に大きな変化をもたらしています。多様な分野で業務の効率化と新たな価値の創造が進んでいます。利用にあたっては倫理や情報保護についても慎重な検討が必要です。'.repeat(5);
+const strongReview = { ...validReview, score: 78, assessment: 'many_patterns', observations: [
+  { text: '人工知能は現代社会に大きな変化をもたらしています。', reason: '同じ主張が繰り返されます。', direction: 'supports', dimension: 'structure' },
+  { text: '多様な分野で業務の効率化と新たな価値の創造が進んでいます。', reason: '同じ抽象的な表現が反復されています。', direction: 'supports', dimension: 'expression' },
+] };
+
+test('enhanced review requires independent source-backed evidence for a strong score', () => {
+  assert.equal(normalizeReview(strongReview, evidenceText).score, 78);
+  const duplicate = { ...strongReview, observations: [strongReview.observations[0], strongReview.observations[0]] };
+  assert.equal(normalizeReview(duplicate, evidenceText).score, null);
+  const unsupported = { ...strongReview, observations: strongReview.observations.map(o => ({ ...o, text: '存在しない引用をモデルが生成しました。' })) };
+  assert.equal(normalizeReview(unsupported, evidenceText).assessment, 'uncertain');
+});
+
+test('conflicting evidence and short inputs withhold a strong headline score', () => {
+  const conflicting = { ...strongReview, observations: [...strongReview.observations, { text: '利用にあたっては倫理や情報保護についても慎重な検討が必要です。', reason: 'ジャンルで通常の表現とも解釈できます。', direction: 'counter', dimension: 'specificity' }] };
+  const result = normalizeReview(conflicting, evidenceText);
+  assert.equal(result.score, null);
+  assert.equal(result.assessment, 'uncertain');
+  assert.ok(modelReport({ provider: 'DeepSeek', modelVersion: 'test', sandbox: false, ...result, scanId: 'test', analyzedAt: new Date().toISOString() }).includes('算出を保留'));
+  assert.equal(normalizeReview(strongReview, evidenceText.slice(0, 180)).score, null);
+});
+
+test('dimensions must be complete, unique, and bounded; malformed successful completions do not retry', async () => {
+  for (const changes of [{ dimensions: dimensions.slice(0, 3) }, { dimensions: Array(4).fill(dimensions[0]) }, { dimensions: dimensions.map(d => ({ ...d, score: 101 })) }, { genre: 'certainly_human' }]) {
+    let calls = 0;
+    const client = createDeepSeekClient((async () => { calls++; return completion({ ...validReview, ...changes }); }) as typeof fetch);
+    await assert.rejects(() => client(text, 'unit-test-key'), DetectionError);
+    assert.equal(calls, 1);
+  }
+});
+
+test('overlapping quote fragments cannot manufacture multiple independent findings', () => {
+  const fragment = evidenceText.slice(8, 45);
+  const second = evidenceText.slice(25, 60);
+  const result = normalizeReview({ ...strongReview, observations: [
+    { ...strongReview.observations[0], text: fragment },
+    { ...strongReview.observations[1], text: second },
+  ] }, evidenceText);
+  assert.equal(result.observations.length, 1);
+  assert.equal(result.score, null);
 });

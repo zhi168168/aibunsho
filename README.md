@@ -36,8 +36,8 @@ DeepSeek 是通用语言模型，此处提供**辅助文体评价**，不是训�
 ## 已实现的功能
 
 - 日语界面、参考 Typing Animation 的暗色导航和排版、移动端布局。
-- 本地统计：句长规律、定型表达、文末重复、4 字符片段重复。100–10,000 字符，实际计算，不上传文本。
-- DeepSeek 辅助评价：服务端 JSON 输出、原文引用校验、日语说明、报告导出。
+- 本地统计：句长规律、定型表达、文末重复、4 字符片段重复，以及句首、局部语句多样性、段落和相邻句相似度，共 8 指标。100–10,000 字符，实际计算，不上传文本。
+- DeepSeek 辅助评价 v2：8 项观测指标输入、4 维审查、支持/其他解释/模糊证据分组、原文引用与重叠校验、材料不足保留判断、报告导出；每次只调用一次 API。
 - 可选 Copyleaks 专用分类器适配器：整体比例、文本区分、模型版本。日语不支持 AI Logic 短语解释，因此不展示伪造的解释。
 - TXT 导入、拖放、字符计数、清空、Ctrl/Cmd+Enter、样例、逐句分析、复制和 TXT 报告下载。
 - 隐私说明、FAQ、语义化标题、描述、Open Graph、FAQPage 和 WebApplication 结构化数据。
@@ -72,3 +72,6 @@ COPYLEAKS_SANDBOX=true
 ## SEO 逐项检查
 
 本次 21 项审计、待上线验证项与发布流程见 [docs/seo-audit-2026-11-05.md](docs/seo-audit-2026-11-05.md)，本地 HTTP/HTML 验证记录见 [docs/seo-validation.json](docs/seo-validation.json)。新增 SEO 回归测试覆盖标题结构、页内锚点、FAQ 数据和正式 URL 一致性。只有首页具有独立搜索意图，说明与隐私使用页内锚点，不为关键词变体生成重复页面。
+
+
+增强说明见 [docs/enhancement-2026-11-05.md](docs/enhancement-2026-11-05.md)。离线规则回归可运行 `pnpm exec tsx scripts/evaluate-review.ts`；加 `--live` 会对 3 个公开/内置样例各发起一次真实 DeepSeek 请求并产生费用，不在测试或构建中自动运行。样例评估不是准确率校准，未报告总体检测准确率。
