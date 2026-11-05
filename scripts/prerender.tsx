@@ -1,0 +1,15 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import { renderToString } from 'react-dom/server';
+import App from '../src/App';
+import { loadEnv } from 'vite';
+import { siteMetadata } from './seo';
+const template = readFileSync('dist/index.html', 'utf8');
+let html = template.replace('<!--app-html-->', renderToString(<App />));
+const site = process.env.SITE_URL || loadEnv('production', process.cwd(), '').SITE_URL;
+const metadata = siteMetadata(site);
+html = html.replace('</head>', metadata.head + '</head>');
+if (metadata.sitemap) writeFileSync('dist/sitemap.xml', metadata.sitemap);
+else console.warn('SITE_URL is unset: canonical, absolute share URLs and sitemap await the production domain.');
+writeFileSync('dist/robots.txt', metadata.robots);
+writeFileSync('dist/index.html', html);
+console.log('Japanese homepage prerendered for crawlers.');

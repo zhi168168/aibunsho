@@ -1,0 +1,54 @@
+{
+  "homepage_status": 200,
+  "html_bytes": 37206,
+  "title": "AIチェッカー｜無料・登録不要の日本語テキスト分析",
+  "title_characters": 25,
+  "description_characters": 132,
+  "h1_count": 1,
+  "duplicate_ids": 0,
+  "broken_anchors": [],
+  "robots_meta": "index,follow,max-image-preview:large",
+  "site_url_configured": true,
+  "initial_html_has_privacy": true,
+  "google_font_import": false,
+  "robots.txt": {
+    "status": 200,
+    "content_type": "text/plain",
+    "bytes": 39
+  },
+  "ai-checker-og.png": {
+    "status": 200,
+    "content_type": "image/png",
+    "bytes": 59210
+  },
+  "route_statuses": {
+    "/": 200,
+    "/robots.txt": 200,
+    "/ai-checker-og.png": 200,
+    "/sitemap.xml": 200,
+    "/seo-missing-page": 404,
+    "/404.html": 200
+  },
+  "tested_viewports": [
+    {
+      "width": 390,
+      "document_width": 375
+    },
+    {
+      "width": 1280,
+      "document_width": 1265
+    }
+  ],
+  "external_reference_statuses": {
+    "https://api-docs.deepseek.com/api/create-chat-completion": 200,
+    "https://github.com/eric-mitchell/detect-gpt": 200
+  },
+  "build": "passed",
+  "tests": {
+    "passed": 14,
+    "failed": 0
+  },
+  "production_origin": "https://aibunsho.com",
+  "production_url_checks": "canonical, og:url, og:image, twitter:image, sitemap and robots agree",
+  "public_deployment_verified": false
+}
