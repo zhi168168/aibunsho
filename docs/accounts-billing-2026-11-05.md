@@ -2,7 +2,7 @@
 
 ## 本轮实现
 
-- 参考 Typeflow 的 Better Auth、PostgreSQL、Google OAuth、SMTP、Waffo 架构。独立 Cookie 前缀、站点 origin、商品与数据库；按用户授权复用 Waffo 商户凭据，SMTP 待补齐。未复制 Typeflow 账户记录，本站使用独立认证密钥。
+- 参考 Typeflow 的 Better Auth、PostgreSQL、Google OAuth、SMTP、Waffo 架构。独立 Cookie 前缀、站点 origin、商品与数据库；按用户授权复用 Waffo 商户凭据，SMTP 服务已找到，受限凭据待授权创建。未复制 Typeflow 账户记录，本站使用独立认证密钥。
 - 邮箱注册后必须验证；支持登录、确认邮件重发、密码重设与退出。Google OAuth 回调 `/api/auth/callback/google`。不开放账户删除，避免删除记录后失去订阅管理及首购历史。
 - Basic：$9.99/月，首次付费30天$4.99，每期60,000词。Pro：$29.99/月，首次付费30天$14.99，每期260,000词。仅月付，自动续费，无年付入口。
 - 两个付费套餐都使用既有完整报告功能，差别仅词数。未新增或承诺专家面板、批量分析、查重、事实核查。
@@ -40,10 +40,18 @@ Waffo SDK 0.26支持订阅产品 `prices.USD.trialAmount`，并要求 `metadata.
 - 独立远程数据库已成功执行账户及计费迁移，连接信息保存在被忽略的本地环境文件及 Vercel Sensitive 变量中。
 - 同一 Waffo 商户下创建独立商店 `STO_0trboJi28jvef6MrEeTWgu`；Basic 测试商品 `PROD_5Bf2cdDHO4Hn5YKkpUK7a4`、Pro 测试商品 `PROD_0Nc2opGobFB7UiE3GLDsFf`，两档价格、30天首期及词数已远程回读核实。商店 `prodEnabled=false`，尚不能正式收款。
 - 创建 Google Cloud 独立项目 `aibunsho`。经用户确认接受 Google API 用户数据政策，创建 Web 客户端 `Aibunsho Production Web`；授权来源 `https://aibunsho.com`、唯一回调 `https://aibunsho.com/api/auth/callback/google`，授权域名 `aibunsho.com`。品牌配置包含本站首页、隐私及条款链接，受众为外部正式版。只使用基本身份、邮箱、个人资料范围。凭据保存在忽略的本地环境文件中。
-- Typeflow 的 Vercel SMTP 值为只写密文，无法读取复制；未修改 Typeflow 的配置，需要补充原 SMTP 凭据。
+- Typeflow 的 Vercel SMTP 值为只写密文，无法读取复制；已找到原服务为 Resend，typing-animation.com 发信域名已验证。原密钥不可读，已准备本站专用 Sending access 密钥（限定该域名），等待创建授权；不修改或撤销 Typeflow 原密钥。
 
-最新验证：28 项 TypeScript 测试及10项账户/计费测试通过，生产构建通过；Waffo 真实只读订单查询（含付款金额快照字段）通过。金额校验按税前套餐价和实际含税支付总额分别核对，未付款的第0期不授予权限。没有进行真实扣款，也未完成 Google 真实登录、SMTP 投递或支付沙箱全流程。
+最新验证：28 项 TypeScript 测试及15项账户/计费/内容检查测试通过，生产构建通过；Waffo 真实只读订单查询（含付款金额快照字段）通过。金额校验按税前套餐价和实际含税支付总额分别核对，未付款的第0期不授予权限。Google 已完成线上真实登录和会话恢复；没有进行真实扣款，SMTP 投递与支付沙箱全流程未完成。
 
 本站 Vercel Production 已安装 `ACCOUNT_ORIGIN`、`AUTH_DEV_MODE=false`、独立 `BETTER_AUTH_SECRET`、`GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`，全部为 Secret；Preview 未安装。Vercel 页面确认保存成功，新部署后才生效。
 
-代码尚未推送或发布；支付配置仍待安装。上线前须完成 SMTP、Waffo 生产启用与 webhook 配置及实际登录/支付联调，避免付费报告暂时关闭。
+代码已通过 911df26、4c69644 推送并发布到 Vercel Production（dpl_whKJaKQPnVWkRAxNaVZzSeAX1A9f，Ready）。已合并远端同期提示词与结果文案更新。线上 /pricing/、/privacy/、/api/auth/config、/api/auth/get-session 和网站验证文件均验证成功。Waffo 服务端配置已安装为 Production Secret，但环境仍为 test 且 WAFFO_CHECKOUT_ENABLED=false；界面和后端均关闭购买。SMTP 未安装时邮箱注册和密码恢复返回不可用，Google 可用。
+
+## Waffo 业务审核与内容检查（最新）
+
+- 本站客服邮箱采用同一 Gmail 的独立别名 zhihaosong168+aibunsho@gmail.com，已验证；未解绑 Typeflow 原联系邮箱。
+- 域名 aibunsho.com 已通过 well-known 文件验证。独立公开定价页、运营者与客服联系、订阅/退款/隐私政策已发布。平台网站自检结果为：未发现明显问题，可以提交。
+- 12步业务申请资料已填写，最终费率确认与提交等待用户确认。审核通常为1–3个工作日，尚未正式启用收款，生产商品和生产webhook尚未发布。
+- Waffo Prompt Sift 输入/输出检查已接入并启用；真实接口对两段无敏感内容的部署样例均返回 allow。block 返回422、review/异常返回503；失败不结算完整报告词数。按9000 UTF-16长度切块并重叠256，记录哈希、判定、原因和处理ID，不记原文，30天后清理。远端数据库已迁移 content_safety_events 表。
+- Waffo 费率：卡/钱包成功交易3.9%+$0.50；微信3.9%；特定失败交易$0.30；卡退款$1且原手续费不退；提现1%且最低$10；首次拒付$25、主动抗辩$10、仲裁前$25。来源 https://docs.waffo.ai/zh/mor/fees 。
