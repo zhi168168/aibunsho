@@ -49,3 +49,4 @@
 @keyframes robot-spark{0%,100%{opacity:.15}50%{opacity:.7}}
 @media(max-width:760px){.analysis-loading{min-height:300px}.checking-robot{width:220px;height:150px}.analysis-steps{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.analysis-loading *{animation:none!important}}
+.information-page{max-width:1000px;margin:0 auto;padding:0 24px}.information-page h1{font-size:clamp(24px,4vw,38px);line-height:1.6}.information-page h2{margin-top:42px}.information-page .guide-section>section p{color:#a5a0af;font-size:13px;line-height:2.1}.information-nav{display:flex;gap:20px;font-size:12px}.trust-section a{color:var(--accent);text-decoration:underline;text-underline-offset:4px}.footer-links{flex-wrap:wrap}@media(max-width:760px){.information-nav{gap:12px;font-size:10px}.information-page .guide-section>section p{font-size:12px}.information-page h2{font-size:21px}}

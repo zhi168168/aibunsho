@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import App from '../src/App';
 import { faqs } from '../src/components/Content';
 import { siteMetadata } from '../scripts/seo';
+import { InformationPage, pages } from '../src/pages';
 
 test('initial HTML exposes the tool, policies, valid anchors and matching FAQ schema', () => {
   const html = renderToStaticMarkup(<App />);
@@ -35,4 +36,22 @@ test('missing domain never fabricates canonical; invalid origins fail the build'
   assert.equal(siteMetadata().head, '');
   assert.equal(siteMetadata().sitemap, null);
   for (const value of ['http://ai.example', 'https://ai.example/path', 'https://name:secret@ai.example', 'https://ai.example?x=1', 'https://ai.example/#x']) assert.throws(() => siteMetadata(value));
+});
+
+test('information pages have distinct canonical URLs, real cross-page links and no tool FAQ schema', () => {
+  const home = renderToStaticMarkup(<App />);
+  const sitemap = siteMetadata('https://aibunsho.com').sitemap!;
+  for (const page of pages) {
+    assert.ok(home.includes(`href="${page.path}"`), `Homepage must link to ${page.path}`);
+    assert.ok(sitemap.includes(`<loc>https://aibunsho.com${page.path}</loc>`));
+    const html = renderToStaticMarkup(<InformationPage path={page.path} />);
+    assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
+    assert.ok(html.includes('href="/#checker"'));
+    assert.ok(!html.includes('FAQPage'));
+    const metadata = siteMetadata('https://aibunsho.com', page.path, page.title);
+    assert.ok(metadata.head.includes(`rel="canonical" href="https://aibunsho.com${page.path}"`));
+    const graph = JSON.parse(metadata.head.match(/application\/ld\+json">(.*?)<\/script>/s)![1])['@graph'];
+    assert.equal(graph[1].name, page.title);
+    assert.equal(graph[1].isPartOf['@id'], 'https://aibunsho.com/#website');
+  }
 });
