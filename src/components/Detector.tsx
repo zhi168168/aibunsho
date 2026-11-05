@@ -4,6 +4,7 @@ import { analyzeText, countChars, MAX_CHARS, MIN_CHARS, reportText, type Analysi
 import { samples } from '../lib/samples';
 import { modelReport, type ModelResult as ModelResultType, type ServiceStatus } from '../lib/model';
 import ModelResult from './ModelResult';
+import AnalysisLoading, { type AnalysisPhase } from './AnalysisLoading';
 
 type ResultTab = 'overview' | 'sentences';
 export default function Detector() {
@@ -13,6 +14,7 @@ export default function Detector() {
   const [modelResult, setModelResult] = useState<ModelResultType | null>(null);
   const [result, setResult] = useState<Analysis | null>(null);
   const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<AnalysisPhase>('reading');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [tab, setTab] = useState<ResultTab>('overview');
@@ -52,17 +54,28 @@ export default function Detector() {
     if (busy) return;
     if (count < minimum || count > MAX_CHARS) { setError(`${minimum}〜10,000文字の文章を入力してください。`); editorRef.current?.focus(); return; }
     const ticket = ++requestRef.current;
-    setBusy(true); setError(''); setNotice(''); setResult(null); setModelResult(null); setCopied(false);
-    // Give the browser a frame to display its loading state before local computation.
-    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    const startedAt = performance.now();
+    setBusy(true); setPhase('reading'); setError(''); setNotice(''); setResult(null); setModelResult(null); setCopied(false);
+    // Briefly show the reading transition; never delay the provider request for a full animation cycle.
+    await new Promise<void>(resolve => setTimeout(resolve, 180));
+    if (ticket !== requestRef.current) return;
+    setPhase('analyzing');
+    async function prepareResult() {
+      if (ticket !== requestRef.current) return;
+      setPhase('preparing');
+      // Keep very fast local checks legible, with no added wait for slower API calls.
+      await new Promise<void>(resolve => setTimeout(resolve, Math.max(0, 1100 - (performance.now() - startedAt))));
+    }
     try {
       if (mode === 'model') {
         const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(65000) });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'AI判定を完了できませんでした。');
+        await prepareResult();
         if (ticket === requestRef.current) setModelResult(data as ModelResultType);
       } else {
         const next = analyzeText(text);
+        await prepareResult();
         if (ticket === requestRef.current) { setResult(next); setTab('overview'); }
       }
     } catch (e) { if (ticket === requestRef.current) setError(e instanceof Error ? e.message : '分析に失敗しました。'); }
@@ -97,7 +110,7 @@ export default function Detector() {
         <div className="pane-heading"><span>分析結果</span><span className={`result-status ${result || modelResult ? 'done' : ''}`}>{busy ? '分析中' : result || modelResult ? '分析完了' : '入力待ち'}</span></div>
         <div className="results-content" aria-live="polite">
           {!result && !modelResult && !busy && <div className="empty-result"><div className="scan-illustration" aria-hidden="true"><span className="scan-corner top-left" /><span className="scan-corner top-right" /><span className="scan-corner bottom-left" /><span className="scan-corner bottom-right" /><FileText size={31} strokeWidth={1.1} /><span className="scan-beam" /></div><h2>{mode === 'model' && !service?.configured ? `${reviewMode ? 'AIレビュー' : 'AI判定'}は、ただいま準備中。` : 'その文章を、もう少し深く。'}</h2><p>{mode === 'model' && !service?.configured ? <>現在は文章分析をご利用いただけます。<br />文章の特徴を無料で確認できます。</> : <>文章を入力して、チェックを開始。<br />分析結果がここに表示されます。</>}</p><div className="empty-signal"><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /></div></div>}
-          {busy && <div className="empty-result"><LoaderCircle className="spin loading-icon" size={36} /><h2>{mode === 'model' ? reviewMode ? 'AIが文章をレビューしています' : 'AIモデルで判定しています' : '文章の特徴を分析しています'}</h2><p>{mode === 'model' ? `${provider} からの結果を待っています…` : '文の長さ・表現・繰り返しを確認中…'}</p></div>}
+          {busy && <AnalysisLoading phase={phase} model={mode === 'model'} provider={provider} />}
           {modelResult && <ModelResult result={modelResult} copied={copied} onCopy={() => void copyReport()} onDownload={downloadReport} />}
           {result && <>
             <div className="result-tabs" role="tablist" aria-label="分析表示"><button id="overview-tab" role="tab" aria-selected={tab === 'overview'} aria-controls="result-overview" onClick={() => setTab('overview')}>分析サマリー</button><button id="sentences-tab" role="tab" aria-selected={tab === 'sentences'} aria-controls="result-sentences" onClick={() => setTab('sentences')}>文ごとの特徴 <span>{result.sentenceCount}</span></button></div>

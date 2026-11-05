@@ -34,3 +34,18 @@
 .trust-section summary{cursor:pointer;color:var(--accent);font-size:14px}.trust-section details:target{background:#17131d;padding:20px;border-radius:8px}
 .source-links{padding-left:20px}.footer-links a:hover{color:var(--accent)}
 @media(max-width:760px){.guide-grid{grid-template-columns:1fr;gap:0}.guide-section>p,.trust-section p,.guide-grid p,.source-links{font-size:12px}.comparison-wrap th,.comparison-wrap td{padding:12px 10px;overflow-wrap:anywhere}.comparison-wrap table{font-size:11px}.comparison-wrap th:first-child{width:22%}.hero>p{max-width:440px;margin-left:auto;margin-right:auto}.guide-section h3{font-size:15px}}
+.analysis-loading{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:12px 0 16px;min-height:308px;color:var(--accent)}
+.checking-robot{width:235px;max-width:90%;height:160px;overflow:visible}
+.robot-body{animation:robot-bob 2.6s ease-in-out infinite;transform-origin:105px 145px}
+.robot-magnifier{animation:robot-inspect 2.6s ease-in-out infinite;transform-origin:145px 109px}
+.robot-scan{animation:robot-scan 2.6s ease-in-out infinite}
+.robot-spark{animation:robot-spark 2.6s ease-in-out infinite}.spark-two{animation-delay:1.3s}
+.analysis-steps{list-style:none;padding:0;margin:17px 0 0;display:grid;gap:11px;min-width:200px;font-size:12px;color:#bfb7cd}
+.analysis-steps li{display:flex;align-items:center;gap:10px;line-height:1.6}.analysis-steps li>span{width:15px;height:15px;display:grid;place-items:center;flex-shrink:0}.analysis-steps .complete>span{border-radius:50%;background:#56b98b;color:#0d2118}.analysis-steps .current{color:#e0d4f2}.analysis-steps .current>span{color:var(--accent)}.analysis-steps .pending{color:#746c80}.analysis-steps .pending i{width:12px;height:12px;border:2px solid #4b3e5c;border-radius:50%}
+.analysis-wait-note{font-size:10px;color:#81788f;margin:16px 0 0;text-align:center;line-height:1.8}
+@keyframes robot-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes robot-inspect{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg)}}
+@keyframes robot-scan{0%,100%{transform:translateY(0);opacity:.12}50%{transform:translateY(30px);opacity:.4}}
+@keyframes robot-spark{0%,100%{opacity:.15}50%{opacity:.7}}
+@media(max-width:760px){.analysis-loading{min-height:300px}.checking-robot{width:220px;height:150px}.analysis-steps{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.analysis-loading *{animation:none!important}}
