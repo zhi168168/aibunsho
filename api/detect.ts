@@ -3,6 +3,11 @@ import { randomUUID, createHash } from 'node:crypto';
 import { DetectionError } from '../server/errors';
 import { createDeepSeekClient } from '../server/deepseek';
 import { createAdvancedClient } from '../server/advanced-report';
+import { fromNodeHeaders } from 'better-auth/node';
+import { getRuntime } from '../accounts/runtime.mjs';
+import { countWords } from '../billing/plans.mjs';
+import { createContentSafety, generatedContent } from '../server/content-safety.mjs';
+import { BillingStore } from '../billing/store.mjs';
 export { DetectionError } from '../server/errors';
 
 type Config = { email?: string; key?: string; enabled: boolean; sandbox: boolean };
@@ -80,6 +85,7 @@ export async function handleDetection(req: IncomingMessage & { body?: unknown },
   if (req.method !== 'POST') { res.setHeader('Allow', 'GET, POST'); send(405, { error: 'Method not allowed' }); return; }
   if (!configured) { send(503, { error: 'AIサービスはまだ利用できません。文章分析をご利用ください。' }); return; }
   if (req.headers['sec-fetch-site'] === 'cross-site' || !req.headers['content-type']?.startsWith('application/json')) { send(403, { error: 'リクエストを受け付けられません。' }); return; }
+  let reservation: { store: { settle: (id: string, success: boolean) => Promise<void> }; id: string } | undefined;
   try {
     let body: unknown = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch { throw new DetectionError(400, '送信形式が正しくありません。'); } }
@@ -91,18 +97,53 @@ export async function handleDetection(req: IncomingMessage & { body?: unknown },
     if (!body || typeof body !== 'object' || !('text' in body) || typeof body.text !== 'string') throw new DetectionError(400, '文章を入力してください。');
     const advancedRequest = 'report' in body && body.report === 'advanced';
     if (advancedRequest && !useDeepSeek) throw new DetectionError(400, '詳細レポートにはDeepSeekの設定が必要です。');
+    const characters = Array.from(body.text.replace(/\s/gu, '')).length;
+    if (characters < (useDeepSeek ? 100 : 255) || characters > 10000 || Buffer.byteLength(body.text) > 100000) throw new DetectionError(400, '文章の長さを確認してください（100〜10,000文字）。');
     const origin = req.headers.origin;
     if (origin) { let host: string; try { host = new URL(origin).host; } catch { throw new DetectionError(403, '許可されていないアクセスです。'); } if (host !== req.headers.host) throw new DetectionError(403, '許可されていないアクセスです。'); }
+    if (advancedRequest) {
+      let runtime;
+      try { runtime = await getRuntime(env); } catch { throw new DetectionError(503, 'アカウントサービスに接続できません。'); }
+      if (!runtime) throw new DetectionError(503, '詳細レポートのアカウントサービスは準備中です。');
+      const session = await runtime.accounts.auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+      if (!session?.user?.id) throw new DetectionError(401, '詳細レポートを作成するにはログインしてください。');
+      if (!session.user.emailVerified) throw new DetectionError(403, 'メールアドレスを確認してください。');
+      if (!runtime.billing) throw new DetectionError(503, '詳細レポートの決済サービスは準備中です。');
+      await runtime.billing.processEvents();
+      await runtime.billing.refresh(session.user.id);
+      const id = randomUUID();
+      try { await runtime.billing.store.reserve(session.user.id, id, countWords(body.text)); }
+      catch (error) { const e = error as Error & { status?: number }; if (e.status) throw new DetectionError(e.status, e.message); throw error; }
+      reservation = {store:runtime.billing.store,id};
+    }
     const now = Date.now();
     const ip = req.socket.remoteAddress ?? 'unknown'; // Never trust a client-supplied forwarding header locally.
     const identity = createHash('sha256').update(ip).digest('hex');
     for (const [key, value] of quota) if (value.reset < now) quota.delete(key);
     const entry = quota.get(identity) ?? { count: 0, reset: now + 3600000 };
     if (daily.reset < now) daily = { count: 0, reset: now + 86400000 };
-    if (entry.count >= 5 || daily.count >= 50) throw new DetectionError(429, '利用上限に達しました。時間をおいて再度お試しください。');
-    entry.count++; daily.count++; quota.set(identity, entry);
-    send(200, advancedRequest ? await advanced(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : useDeepSeek ? await review(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : await detect(body.text, c));
+    if (!advancedRequest) {
+      if (entry.count >= 5 || daily.count >= 50) throw new DetectionError(429, '利用上限に達しました。時間をおいて再度お試しください。');
+      entry.count++; daily.count++; quota.set(identity, entry);
+    }
+    let safety;
+    const requestId = randomUUID();
+    if (useDeepSeek && env.CONTENT_SAFETY_ENABLED === 'true') {
+      const runtime = await getRuntime(env);
+      if (!runtime) throw new DetectionError(503, '内容確認サービスは準備中です。');
+      safety = createContentSafety(env,new BillingStore(runtime.accounts.database,runtime.config.local));
+      try { await safety(body.text,'input',requestId); }
+      catch (error) { const e=error as Error & {status?:number}; throw new DetectionError(e.status||503,e.status?e.message:'内容確認サービスに接続できません。'); }
+    }
+    const result = advancedRequest ? await advanced(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : useDeepSeek ? await review(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : await detect(body.text, c);
+    if (safety) {
+      try { await safety(generatedContent(result),'output',requestId); }
+      catch (error) { const e=error as Error & {status?:number}; throw new DetectionError(e.status||503,e.status?e.message:'生成結果の内容確認を完了できません。'); }
+    }
+    if (reservation) { await reservation.store.settle(reservation.id,true); reservation = undefined; }
+    send(200, result);
   } catch (error) {
+    if (reservation) await reservation.store.settle(reservation.id,false).catch(() => {});
     if (error instanceof DetectionError) send(error.status, { error: error.message });
     else if (error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)) send(504, { error: '検出サービスへの接続がタイムアウトしました。結果は取得できませんでした。' });
     else send(502, { error: '検出サービスと通信できませんでした。結果は取得できませんでした。' });

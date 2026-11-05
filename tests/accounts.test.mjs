@@ -1,0 +1,46 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { once } from 'node:events';
+import { mkdtemp,rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import express from 'express';
+import { accountConfig } from '../accounts/config.mjs';
+import { createAccounts } from '../accounts/auth.mjs';
+import { mountAccounts } from '../accounts/http.mjs';
+
+test('public accounts require a separate TLS database and a strong secret; dev mode is loopback-only',()=>{
+  assert.equal(accountConfig({}),null);
+  assert.throws(()=>accountConfig({ACCOUNT_ORIGIN:'https://aibunsho.com'}));
+  assert.throws(()=>accountConfig({AUTH_DEV_MODE:'true',ACCOUNT_ORIGIN:'http://public.example'}));
+  assert.throws(()=>accountConfig({ACCOUNT_ORIGIN:'https://aibunsho.com',DATABASE_URL:'postgres://u:p@db/site',BETTER_AUTH_SECRET:'a'.repeat(48)}));
+});
+test('email signup, verification, password login/reset and sign-out work over the real HTTP adapter',async t=>{
+  const directory=await mkdtemp(path.join(tmpdir(),'aibunsho-auth-'));
+  const app=express(),server=app.listen(0,'127.0.0.1');await once(server,'listening');
+  const origin=`http://127.0.0.1:${server.address().port}`;
+  const config=accountConfig({AUTH_DEV_MODE:'true',ACCOUNT_ORIGIN:origin,BETTER_AUTH_SECRET:'test-only-secret-'.repeat(4),GOOGLE_CLIENT_ID:'test-google-client',GOOGLE_CLIENT_SECRET:'test-google-secret'});
+  const accounts=await createAccounts(config,{directory});mountAccounts(app,config,accounts);
+  t.after(async()=>{await new Promise(resolve=>server.close(resolve));await accounts.close();await rm(directory,{recursive:true,force:true});});
+  const post=(route,body,cookie,requestOrigin=origin)=>fetch(`${origin}/api/auth/${route}`,{method:'POST',headers:{origin:requestOrigin,'content-type':'application/json',...(cookie?{cookie}:{})},body:JSON.stringify(body),redirect:'manual'});
+  const email='member@example.test',password='Test-password-1234';
+  assert.equal((await post('sign-up/email',{name:'Test',email,password,callbackURL:origin})).status,200);
+  assert.equal((await post('sign-in/email',{email,password})).status,403);
+  const verifyURL=accounts.messages()[0].text.match(/https?:\/\/\S+/)[0];
+  assert.equal((await fetch(verifyURL,{redirect:'manual'})).status,302);
+  const login=await post('sign-in/email',{email,password});assert.equal(login.status,200);
+  const cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');assert.match(cookie,/aibunsho/);
+  const session=await fetch(`${origin}/api/auth/get-session`,{headers:{cookie}});assert.equal((await session.json()).user.email,email);
+  const google=await post('sign-in/social',{provider:'google',callbackURL:origin});assert.equal(google.status,200);
+  const googleURL=new URL((await google.json()).url);assert.equal(googleURL.hostname,'accounts.google.com');assert.equal(googleURL.searchParams.get('redirect_uri'),`${origin}/api/auth/callback/google`);
+  assert.equal((await post('request-password-reset',{email,redirectTo:`${origin}/?view=reset`})).status,200);
+  const resetURL=accounts.messages()[0].text.match(/https?:\/\/\S+/)[0];
+  const reset=await fetch(resetURL,{redirect:'manual'});assert.equal(reset.status,302);
+  const token=new URL(reset.headers.get('location'),origin).searchParams.get('token');assert.ok(token);
+  assert.equal((await post('reset-password',{token,newPassword:'New-password-5678'})).status,200);
+  assert.equal((await post('sign-in/email',{email,password})).status,401);
+  const next=await post('sign-in/email',{email,password:'New-password-5678'});assert.equal(next.status,200);
+  assert.equal((await post('sign-out',{},cookie,'https://evil.example')).status,403);
+  assert.equal((await post('sign-out',{},cookie)).status,200);
+  assert.equal(await (await fetch(`${origin}/api/auth/get-session`,{headers:{cookie}})).json(),null);
+});

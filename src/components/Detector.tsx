@@ -38,6 +38,19 @@ export default function Detector() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    try {
+      const draft = sessionStorage.getItem('aibunsho:draft');
+      if (draft) { setText(draft); sessionStorage.removeItem('aibunsho:draft'); }
+    } catch { /* Storage may be disabled; analysis remains available. */ }
+  }, []);
+  useEffect(() => {
+    const save = () => { try { sessionStorage.setItem('aibunsho:draft', text); } catch {} };
+    const clear = () => { requestRef.current++; setAdvanced(null); setReportOpen(false); setAdvancedBusy(false); setBusy(false); };
+    window.addEventListener('aibunsho:preserve-draft',save);
+    window.addEventListener('aibunsho:signed-out',clear);
+    return () => { window.removeEventListener('aibunsho:preserve-draft',save); window.removeEventListener('aibunsho:signed-out',clear); };
+  }, [text]);
   function updateText(value: string) {
     requestRef.current++;
     setAdvanced(null); setAdvancedBusy(false); setReportOpen(false);
@@ -74,7 +87,7 @@ export default function Detector() {
     }
     try {
       if (mode === 'model') {
-        const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(65000) });
+        const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(120000) });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'AI判定を完了できませんでした。');
         await prepareResult();
@@ -93,9 +106,13 @@ export default function Detector() {
     const ticket = ++requestRef.current;
     setAdvancedBusy(true); setError(''); setNotice('');
     try {
-      const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, report: 'advanced' }), signal: AbortSignal.timeout(65000) });
+      const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, report: 'advanced' }), signal: AbortSignal.timeout(120000) });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || '詳細レポートを作成できませんでした。');
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 402) document.getElementById(response.status === 401 ? 'account' : 'pricing')?.scrollIntoView({behavior:'smooth'});
+        throw new Error(data.error || '詳細レポートを作成できませんでした。');
+      }
+      window.dispatchEvent(new Event('aibunsho:usage'));
       if (data.kind !== 'advanced' || !Array.isArray(data.sections)) throw new Error('詳細レポートの応答を読み取れませんでした。');
       if (ticket === requestRef.current) { setAdvanced(data as AdvancedReportType); setReportOpen(true); }
     } catch (e) { if (ticket === requestRef.current) setError(e instanceof Error ? e.message : '詳細レポートを作成できませんでした。'); }
@@ -134,16 +151,16 @@ export default function Detector() {
           {modelResult && <ModelResult result={modelResult} copied={copied} onCopy={() => void copyReport()} onDownload={downloadReport} />}
           {result && <>
             <div className="result-tabs" role="tablist" aria-label="分析表示"><button id="overview-tab" role="tab" aria-selected={tab === 'overview'} aria-controls="result-overview" onClick={() => setTab('overview')}>分析サマリー</button><button id="sentences-tab" role="tab" aria-selected={tab === 'sentences'} aria-controls="result-sentences" onClick={() => setTab('sentences')}>文ごとの特徴 <span>{result.sentenceCount}</span></button></div>
-            {tab === 'overview' ? <div id="result-overview" role="tabpanel" aria-labelledby="overview-tab" className="overview-result"><div className="score-block"><div className="score-ring" style={{ '--score': `${result.score}%` } as React.CSSProperties}><span><b>{result.score}</b><small>/ 100</small></span></div><div><span className="score-label">文章の規則性スコア</span><h2>{result.score >= 65 ? '整ったパターンが見られます' : result.score >= 35 ? 'いくつかの特徴が見られます' : '表現にばらつきがあります'}</h2><p>AI生成の確率を示すものではありません。</p></div></div><div className="signal-list">{result.signals.map(signal => <div className="signal" key={signal.id}><div><span>{signal.name}</span><span>{signal.available ? <><b>{signal.value}</b><small> / 100</small></> : '—'}</span></div><div className="signal-track"><i style={{ width: signal.available ? `${signal.value}%` : '0%' }} /></div><span className="signal-description">{signal.detail}</span></div>)}</div>{result.cautions.length > 0 && <details className="review-limitations"><summary>文章の形式に関する注意（{result.cautions.length}件）</summary><ul>{result.cautions.map(note => <li key={note}>{note}</li>)}</ul></details>}{result.limited && <p className="limited-note"><Info size={13} /> 短さ・文数・言語により、十分に評価できない場合があります。</p>}</div> : <div id="result-sentences" role="tabpanel" aria-labelledby="sentences-tab" className="sentence-result"><p className="sentence-intro">色が濃いほど、定型表現や文末の反復が多い文です。</p><div className="sentence-list">{result.sentences.map((sentence, index) => <div className={`sentence ${sentence.score >= 60 ? 'high' : sentence.score >= 25 ? 'medium' : 'low'}`} key={index}><span className="sentence-number">{String(index + 1).padStart(2, '0')}</span><div><p>{sentence.text}</p><small>{sentence.evidence.join(' · ') || '定義済みの特徴なし'}</small></div></div>)}</div></div>}
+            {tab === 'overview' ? <div id="result-overview" role="tabpanel" aria-labelledby="overview-tab" className="overview-result"><div className="score-block"><div className="score-ring" style={{ '--score': `${result.score}%` } as React.CSSProperties}><span><b>{result.score}</b><small>/ 100</small></span></div><div><span className="score-label">AIらしさの参考スコア</span><h2>{result.score >= 65 ? 'AIらしさの参考スコアは高めです' : result.score >= 35 ? 'AIらしさの参考スコアは中程度です' : 'AIらしさの参考スコアは低めです'}</h2><p>100点に近いほど、定型表現や繰り返しが多い文章です。</p></div></div><details className="review-limitations"><summary>このスコアの意味・分析方法</summary><p>文の長さ・定型表現・繰り返しなどを集計した参考値です。例えば10点は、これらの特徴が少ないことを表します。AIが書いた確率10%という意味ではありません。検出精度の検証や確率の校正は行っていません。</p></details><div className="signal-list">{result.signals.map(signal => <div className="signal" key={signal.id}><div><span>{signal.name}</span><span>{signal.available ? <><b>{signal.value}</b><small> / 100</small></> : '—'}</span></div><div className="signal-track"><i style={{ width: signal.available ? `${signal.value}%` : '0%' }} /></div><span className="signal-description">{signal.detail}</span></div>)}</div>{result.cautions.length > 0 && <details className="review-limitations"><summary>文章の形式に関する注意（{result.cautions.length}件）</summary><ul>{result.cautions.map(note => <li key={note}>{note}</li>)}</ul></details>}{result.limited && <p className="limited-note"><Info size={13} /> 短さ・文数・言語により、十分に評価できない場合があります。</p>}</div> : <div id="result-sentences" role="tabpanel" aria-labelledby="sentences-tab" className="sentence-result"><p className="sentence-intro">色が濃いほど、定型表現や文末の反復が多い文です。</p><div className="sentence-list">{result.sentences.map((sentence, index) => <div className={`sentence ${sentence.score >= 60 ? 'high' : sentence.score >= 25 ? 'medium' : 'low'}`} key={index}><span className="sentence-number">{String(index + 1).padStart(2, '0')}</span><div><p>{sentence.text}</p><small>{sentence.evidence.join(' · ') || '定義済みの特徴なし'}</small></div></div>)}</div></div>}
             <div className="report-actions"><span><CheckCheck size={13} /> {result.characters}文字・{result.sentenceCount}文を分析</span><button className="icon-button" onClick={() => void copyReport()} aria-label={copied ? 'コピーしました' : 'レポートをコピー'}>{copied ? <Check size={15} /> : <Copy size={15} />}</button><button className="icon-button" onClick={downloadReport} aria-label="レポートをダウンロード"><ArrowDownToLine size={15} /></button></div>
           </>}
         </div>
       </div>
     </div>
-    <div className="advanced-report-entry" aria-busy={advancedBusy}><div><span className="report-eyebrow">DETAILED WRITING REVIEW</span><h3>原文の根拠から、具体的な改善案まで。</h3><p>区分別の解説・書き換え例・8指標を1つのレポートに。印刷・PDF保存に対応。</p><small>{advanced ? '作成済みのレポートを再表示します。追加の送信はありません。' : '作成時に全文をDeepSeekへ送信します。通常レビューとは別に1回の利用として数えます。現在は無料で提供・回数制限あり。'}</small></div><button className="primary-button" disabled={busy || advancedBusy || count < 100 || count > MAX_CHARS || !service?.configured || !reviewMode} onClick={() => void generateAdvanced()}>{advancedBusy ? <LoaderCircle size={17} className="spin" /> : <FileText size={17} />}{advancedBusy ? '詳細レポートを作成中…' : advanced ? '詳細レポートを開く' : '詳細レポートを作成'}</button>{advancedBusy && <p className="advanced-progress" role="status">原文の各区分と改善案を確認しています。このままお待ちください。</p>}{(!service?.configured || !reviewMode) && <small>詳細レポートはDeepSeek提供時に利用できます。</small>}</div>
+    <div className="advanced-report-entry" aria-busy={advancedBusy}><div><span className="report-eyebrow">DETAILED WRITING REVIEW</span><h3>原文の根拠から、具体的な改善案まで。</h3><a className="text-link" href="#pricing">Basic・Proの料金を見る →</a><p>区分別の解説・書き換え例・8指標を1つのレポートに。印刷・PDF保存に対応。</p><small>{advanced ? '作成済みのレポートを再表示します。追加の送信はありません。' : '作成時に全文をDeepSeekへ送り、入力と生成結果をWaffoで内容確認します。通常レビューとは別のリクエストです。Basic・Pro限定。全文の語数を月間利用枠から消費します。'}</small></div><button className="primary-button" disabled={busy || advancedBusy || count < 100 || count > MAX_CHARS || !service?.configured || !reviewMode} onClick={() => void generateAdvanced()}>{advancedBusy ? <LoaderCircle size={17} className="spin" /> : <FileText size={17} />}{advancedBusy ? '詳細レポートを作成中…' : advanced ? '詳細レポートを開く' : '詳細レポートを作成'}</button>{advancedBusy && <p className="advanced-progress" role="status">原文の各区分と改善案を確認しています。このままお待ちください。</p>}{(!service?.configured || !reviewMode) && <small>詳細レポートはDeepSeek提供時に利用できます。</small>}</div>
     {reportOpen && advanced && <AdvancedReport report={advanced} onClose={() => setReportOpen(false)} />}
     {(error || notice) && <div role={error ? 'alert' : 'status'} className={`feedback ${error ? 'error' : ''}`}>{error || notice}<button onClick={() => { setError(''); setNotice(''); }} aria-label="通知を閉じる"><X size={14} /></button></div>}
-    <div className="detector-footer"><span><LockKeyhole size={13} /> {mode === 'local' ? '文章分析は外部への送信・保存なし。' : `開始すると文章が${provider}に送信されます。`}</span><button className="primary-button" disabled={busy || advancedBusy || count < minimum || count > MAX_CHARS || (mode === 'model' && !service?.configured)} onClick={() => void runAnalysis()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ScanLine size={17} />} {busy ? '分析しています' : mode === 'model' ? service?.sandbox ? 'テスト判定を開始' : reviewMode ? 'AIレビューを開始' : 'AI判定を開始' : '無料でチェックする'}<ArrowRight size={16} /></button></div>
+    <div className="detector-footer"><span><LockKeyhole size={13} /> {mode === 'local' ? '文章分析は外部への送信・保存なし。' : `開始すると文章が${provider}に送信されます。${reviewMode ? "入力と生成結果をWaffoで内容確認します。" : ""}`}</span><button className="primary-button" disabled={busy || advancedBusy || count < minimum || count > MAX_CHARS || (mode === 'model' && !service?.configured)} onClick={() => void runAnalysis()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ScanLine size={17} />} {busy ? '分析しています' : mode === 'model' ? service?.sandbox ? 'テスト判定を開始' : reviewMode ? 'AIレビューを開始' : 'AI判定を開始' : '無料でチェックする'}<ArrowRight size={16} /></button></div>
     <div className="method-note"><Info size={13} /><p>{mode === 'model' ? <>{provider}の結果は参考情報です。<a href={reviewMode ? 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html' : 'https://copyleaks.com/privacy-policy'} target="_blank" rel="noreferrer">提供元のプライバシー <ArrowUpRight size={11} /></a>{service?.sandbox && <strong> テストモード：固定応答が返されます。実際の判定ではありません。</strong>}</> : <>統計的な文章分析による参考指標です。AIの使用を断定するものではありません。<a href="#method">分析の仕組み <ArrowUpRight size={11} /></a></>}</p></div>
   </section>;
 }

@@ -1,7 +1,11 @@
 {
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
-  "functions": { "api/detect.ts": { "maxDuration": 60 } },
+  "functions": { "api/detect.ts": { "maxDuration": 120 }, "api/account.mjs": { "maxDuration": 60 }, "api/billing.mjs": { "maxDuration": 60 } },
+  "rewrites": [
+    { "source": "/api/auth/:path*", "destination": "/api/account?__authPath=:path*" },
+    { "source": "/api/billing/:path*", "destination": "/api/billing?__billingPath=:path*" }
+  ],
   "headers": [
     { "source": "/api/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
     { "source": "/(.*)", "headers": [

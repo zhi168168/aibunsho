@@ -6,4 +6,5 @@ dist/
 *.tsbuildinfo
 __pycache__/
 .venv/
+work/
 output/

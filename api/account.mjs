@@ -1,0 +1,14 @@
+import handler from "../accounts/vercel.mjs";
+export const config = { api: { bodyParser: false } };
+
+export default function account(req, res) {
+  const url = new URL(req.url, "https://aibunsho.com");
+  const route = url.searchParams.get("__authPath") || "";
+  if (!/^[a-zA-Z0-9/_-]*$/.test(route)) {
+    res.statusCode = 400;
+    return res.end("Invalid account route");
+  }
+  url.searchParams.delete("__authPath");
+  req.url = `/api/auth/${route}${url.search}`;
+  return handler(req, res);
+}

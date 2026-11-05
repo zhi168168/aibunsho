@@ -60,3 +60,24 @@
 .review-evidence h3{font-size:12px;color:#cdbade;font-weight:500;margin:13px 0 10px}.review-evidence section>p{font-size:11px;color:#8e809c;line-height:1.8}.review-observation small{font-size:9px;color:#a799b4;display:block;margin-bottom:5px}.evidence-counter{border-color:#609c86;background:#18231f}.evidence-neutral{border-color:#8a8171;background:#211e19}.review-limitations{font-size:11px;line-height:1.9;margin:12px 0;color:#b7aa92;border-top:1px solid #393129;padding-top:12px}.review-limitations summary{cursor:pointer}.review-limitations ul{padding-left:18px;margin-bottom:4px}.review-limitations li{margin-bottom:6px;overflow-wrap:anywhere}
 .deepseek-result .model-sections{max-height:330px}.review-evidence .review-observation blockquote{overflow-wrap:anywhere}
 @media(max-width:760px){.review-dimensions summary{font-size:11px}.review-genre,.review-scale-note{font-size:10px}.deepseek-result .model-sections{max-height:360px}}
+/* Accounts and monthly report plans share the existing restrained card system. */
+.account-nav{color:inherit;font-size:13px;white-space:nowrap;margin-left:16px}
+.account-box{max-width:430px;padding:28px;background:var(--panel);border:1px solid var(--border);border-radius:16px;margin-top:24px}
+.account-box fieldset{border:0;padding:0;margin:0;display:grid;gap:16px;min-width:0}
+.account-box label{display:grid;gap:7px;font-size:13px;color:#d6cfe0}
+.account-box input{width:100%;min-width:0;padding:12px 14px;background:#16151b;border:1px solid var(--border);border-radius:8px;color:#eee8f5;font:inherit}
+.account-box small,.account-policy,.pricing-note{color:#a49aac;font-size:12px;line-height:1.9}
+.account-box .primary-button,.google-signin{justify-content:center;width:100%}
+.google-signin{display:flex;align-items:center;gap:10px;border:1px solid var(--border);padding:13px;background:#18171d;border-radius:9px;color:#ece5f5;font:inherit}
+.account-divider{text-align:center;font-size:11px;color:#81868c;margin:20px 0}
+.account-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:20px}.account-links button{border:0;background:none;font:inherit;font-size:12px;color:#afa5bb;padding:0;text-decoration:underline}
+.account-message{padding:16px 20px;background:#211d2a;border-radius:10px;font-size:13px;line-height:1.8}
+.account-signed-in{display:grid;gap:10px;margin-top:24px;padding:24px;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow-wrap:anywhere}
+.account-buttons{display:flex;flex-wrap:wrap;gap:12px}.account-buttons button{display:flex;align-items:center;gap:7px;background:#201d29;border:1px solid var(--border);padding:10px 14px;border-radius:8px;color:#d6cfe0}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:30px 0 22px}
+.pricing-card{display:flex;flex-direction:column;align-items:stretch;padding:28px 24px;background:var(--panel);border:1px solid var(--border);border-radius:16px;min-width:0}
+.pricing-card.featured{border:1px solid #76608f;background:#1c1826}.pricing-card h3{font-size:20px;margin:0 0 16px}.pricing-card .price{font-size:38px;font-weight:600;color:#f0eaf6;margin:0 0 12px;letter-spacing:-1.2px}.price small{font-size:13px;letter-spacing:0;color:#737b85}
+.pricing-card>p{font-size:13px;line-height:1.9}.pricing-card .intro-price{font-size:15px;font-weight:600;color:#c6b5fa}.intro-price small{font-weight:400;font-size:11px;color:#a49aac}.pricing-card ul{list-style:none;display:grid;gap:13px;padding:0;margin:24px 0 30px;font-size:12px}.pricing-card li{display:flex;align-items:center;gap:8px}.pricing-card li svg{flex-shrink:0;color:#b7a3d3}.pricing-card .primary-button,.pricing-card>.text-link{margin-top:auto;justify-content:center}
+.purchase-consent{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.9}.purchase-consent input{margin-top:5px;flex-shrink:0}.purchase-consent a,.account-policy a{color:inherit;text-decoration:underline}.pricing-note{margin-top:15px}.pricing-note summary{cursor:pointer}
+.account-section button:disabled,.pricing-section button:disabled{opacity:.45;cursor:not-allowed}.account-section input:focus-visible,.account-section button:focus-visible,.pricing-section button:focus-visible{outline:2px solid #667b99;outline-offset:3px}
+@media(max-width:760px){.pricing-grid{grid-template-columns:1fr}.pricing-card{padding:24px}.account-box{padding:22px;max-width:none}.account-nav{font-size:11px;margin-left:10px}.account-buttons{flex-direction:column;align-items:flex-start}}
