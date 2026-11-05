@@ -15,7 +15,7 @@ export default function ModelResult({ result, copied, onCopy, onDownload }: { re
         return <section key={direction}><h3>{direction === 'supports' ? '定型性を示す特徴' : direction === 'counter' ? '別の解釈につながる特徴' : '判断が分かれる特徴'}</h3>{items.length ? items.map((o, i) => <article className={`review-observation evidence-${direction}`} key={i}><small>{dimensionNames[o.dimension]}</small><blockquote>{o.text}</blockquote><p>{o.reason}</p></article>) : <p className="no-evidence">原文に基づく十分な指摘はありません。</p>}</section>;
       })}</div>
       <details className="review-limitations" open={result.score === null}><summary>評価の限界と注意点（{result.limitations.length}件）</summary><ul>{result.limitations.map((note, i) => <li key={i}>{note}</li>)}</ul></details>
-      <p className="model-disclaimer">1回のモデル呼び出しと日本語ルールによる補助評価です。専用検出器ではなく、AI使用や執筆者を証明しません。</p>
+      <p className="model-disclaimer">本文に基づく1回のモデル呼び出しによる補助評価です。専用検出器ではなく、AI使用や執筆者を証明しません。</p>
       <div className="report-actions"><span>DeepSeek · {result.modelVersion}</span><button className="icon-button" onClick={onCopy} aria-label={copied ? 'コピーしました' : 'レポートをコピー'}>{copied ? <Check size={15} /> : <Copy size={15} />}</button><button className="icon-button" onClick={onDownload} aria-label="レポートをダウンロード"><ArrowDownToLine size={15} /></button></div>
     </div>;
   }
