@@ -62,5 +62,5 @@ Waffo SDK 0.26支持订阅产品 `prices.USD.trialAmount`，并要求 `metadata.
 
 - Vercel Production 五项 SMTP 配置均为 Secret，Preview 不配置；重新部署 Ei7aUV8DVZo5YhLphHU3159rufaP 已 Ready，线上 emailRegistration/passwordReset/google 均为 true，checkoutEnabled=false。
 - 以站点所有者 Gmail 独立测试别名注册，线上返回200且待验证。Resend 消息 01a1abd8-40d8-7dba-86d8-8e2c9a9c3576 显示 Delivered，Gmail 实际收到验证邮件。首封进入垃圾邮件，已对该测试邮件标记非垃圾邮件；不据此声称所有收件人的收件箱投递率已验证。
-- 点击邮件验证后，密码登录200、会话确认 emailVerified=true、退出200；密码恢复请求200。测试密码仅保存在被忽略的 work/production-auth-test.json。未修改用户原有密码、未产生真实扣款。
+- 点击邮件验证后，密码登录200、会话确认 emailVerified=true、退出200；密码恢复请求200，Gmail 已实际收到密码重设邮件（21:16，收件箱）。测试密码仅保存在被忽略的 work/production-auth-test.json。未修改用户原有密码、未产生真实扣款。
 - 审核凭证：waffo-review-pending.png；生产配置：smtp-production-configured.png；实际收信：smtp-live-delivery.png。
