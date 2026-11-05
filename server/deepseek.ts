@@ -1,8 +1,8 @@
-import { reviewPrompt } from './prompts';
+import { reviewPrompt } from './prompts.js';
 import { randomUUID } from 'node:crypto';
-import { DetectionError } from './errors';
-import { reviewDimensions, type DeepSeekResult, type ReviewDimension } from '../src/lib/model';
-import { analyzeText } from '../src/lib/analyzer';
+import { DetectionError } from './errors.js';
+import { reviewDimensions, type DeepSeekResult, type ReviewDimension } from '../src/lib/model.js';
+import { analyzeText } from '../src/lib/analyzer.js';
 
 
 

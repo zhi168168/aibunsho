@@ -1,4 +1,4 @@
-import { japaneseFeatures } from './japanese-features';
+import { japaneseFeatures } from './japanese-features.js';
 export const MIN_CHARS = 100;
 export const MAX_CHARS = 10000;
 export const countChars = (text: string) => Array.from(text.replace(/\s/gu, '')).length;

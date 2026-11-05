@@ -1,8 +1,8 @@
-import { advancedReportPrompt } from './prompts';
+import { advancedReportPrompt } from './prompts.js';
 import { randomUUID } from 'node:crypto';
-import { analyzeText } from '../src/lib/analyzer';
-import { reportUnits, type AdvancedReport, type ParagraphReview, type ReportUnit } from '../src/lib/advanced-report';
-import { DetectionError } from './errors';
+import { analyzeText } from '../src/lib/analyzer.js';
+import { reportUnits, type AdvancedReport, type ParagraphReview, type ReportUnit } from '../src/lib/advanced-report.js';
+import { DetectionError } from './errors.js';
 
 export function normalizeAdvanced(value: unknown, units: ReportUnit[]) {
   const invalid = () => new DetectionError(502, '詳細レポートの形式が正しくありません。再試行は自動では行いません。');

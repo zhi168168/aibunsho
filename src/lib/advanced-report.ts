@@ -1,4 +1,4 @@
-import type { Analysis } from './analyzer';
+import type { Analysis } from './analyzer.js';
 
 export type ReportUnit = { id: number; text: string };
 export type ParagraphReview = ReportUnit & {

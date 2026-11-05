@@ -1,14 +1,14 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { randomUUID, createHash } from 'node:crypto';
-import { DetectionError } from '../server/errors';
-import { createDeepSeekClient } from '../server/deepseek';
-import { createAdvancedClient } from '../server/advanced-report';
+import { DetectionError } from '../server/errors.js';
+import { createDeepSeekClient } from '../server/deepseek.js';
+import { createAdvancedClient } from '../server/advanced-report.js';
 import { fromNodeHeaders } from 'better-auth/node';
 import { getRuntime } from '../accounts/runtime.mjs';
 import { countWords } from '../billing/plans.mjs';
 import { createContentSafety, generatedContent } from '../server/content-safety.mjs';
 import { BillingStore } from '../billing/store.mjs';
-export { DetectionError } from '../server/errors';
+export { DetectionError } from '../server/errors.js';
 
 type Config = { email?: string; key?: string; enabled: boolean; sandbox: boolean };
 type ProviderResult = { modelVersion: string; summary: { ai: number; human: number }; results: unknown[]; scannedDocument?: { actualCredits?: number } };
