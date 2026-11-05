@@ -75,3 +75,7 @@ COPYLEAKS_SANDBOX=true
 
 
 增强说明见 [docs/enhancement-2026-11-05.md](docs/enhancement-2026-11-05.md)。离线规则回归可运行 `pnpm exec tsx scripts/evaluate-review.ts`；加 `--live` 会对 3 个公开/内置样例各发起一次真实 DeepSeek 请求并产生费用，不在测试或构建中自动运行。样例评估不是准确率校准，未报告总体检测准确率。
+
+## 高级报告
+
+输入文章后点击「詳細レポートを作成」，独立调用一次 DeepSeek 生成全文区分点评、原文引用、改善建议和可选的局部改写示例，同时附8项统计、局限说明和全文。支持TXT下载，以及通过浏览器打印保存A4 PDF。当前免费开放、共用模型配额；尚无支付、报告历史或批量功能。报告仅在当前页面内存中保留。实现与真实验证见 [docs/advanced-report-2026-11-05.md](docs/advanced-report-2026-11-05.md)。

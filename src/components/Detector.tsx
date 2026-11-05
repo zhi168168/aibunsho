@@ -5,6 +5,8 @@ import { samples } from '../lib/samples';
 import { modelReport, type ModelResult as ModelResultType, type ServiceStatus } from '../lib/model';
 import ModelResult from './ModelResult';
 import AnalysisLoading, { type AnalysisPhase } from './AnalysisLoading';
+import AdvancedReport from './AdvancedReport';
+import type { AdvancedReport as AdvancedReportType } from '../lib/advanced-report';
 
 type ResultTab = 'overview' | 'sentences';
 export default function Detector() {
@@ -20,6 +22,9 @@ export default function Detector() {
   const [tab, setTab] = useState<ResultTab>('overview');
   const [copied, setCopied] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [advanced, setAdvanced] = useState<AdvancedReportType | null>(null);
+  const [advancedBusy, setAdvancedBusy] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const requestRef = useRef(0);
@@ -35,6 +40,7 @@ export default function Detector() {
 
   function updateText(value: string) {
     requestRef.current++;
+    setAdvanced(null); setAdvancedBusy(false); setReportOpen(false);
     setBusy(false); setText(value); setResult(null); setModelResult(null); setError(''); setNotice(''); setCopied(false);
   }
   async function loadFile(file?: File) {
@@ -51,7 +57,7 @@ export default function Detector() {
     } catch { setError('ファイルを読み込めませんでした。再度お試しください。'); }
   }
   async function runAnalysis() {
-    if (busy) return;
+    if (busy || advancedBusy) return;
     if (count < minimum || count > MAX_CHARS) { setError(`${minimum}〜10,000文字の文章を入力してください。`); editorRef.current?.focus(); return; }
     const ticket = ++requestRef.current;
     const startedAt = performance.now();
@@ -80,6 +86,20 @@ export default function Detector() {
       }
     } catch (e) { if (ticket === requestRef.current) setError(e instanceof Error ? e.message : '分析に失敗しました。'); }
     finally { if (ticket === requestRef.current) setBusy(false); }
+  }
+  async function generateAdvanced() {
+    if (advanced) { setReportOpen(true); return; }
+    if (busy || advancedBusy || count < 100 || count > MAX_CHARS) return;
+    const ticket = ++requestRef.current;
+    setAdvancedBusy(true); setError(''); setNotice('');
+    try {
+      const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, report: 'advanced' }), signal: AbortSignal.timeout(65000) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '詳細レポートを作成できませんでした。');
+      if (data.kind !== 'advanced' || !Array.isArray(data.sections)) throw new Error('詳細レポートの応答を読み取れませんでした。');
+      if (ticket === requestRef.current) { setAdvanced(data as AdvancedReportType); setReportOpen(true); }
+    } catch (e) { if (ticket === requestRef.current) setError(e instanceof Error ? e.message : '詳細レポートを作成できませんでした。'); }
+    finally { if (ticket === requestRef.current) setAdvancedBusy(false); }
   }
   async function copyReport() {
     if (!result && !modelResult) return;
@@ -120,8 +140,10 @@ export default function Detector() {
         </div>
       </div>
     </div>
+    <div className="advanced-report-entry" aria-busy={advancedBusy}><div><span className="report-eyebrow">DETAILED WRITING REVIEW</span><h3>原文の根拠から、具体的な改善案まで。</h3><p>区分別の解説・書き換え例・8指標を1つのレポートに。印刷・PDF保存に対応。</p><small>{advanced ? '作成済みのレポートを再表示します。追加の送信はありません。' : '作成時に全文をDeepSeekへ送信します。通常レビューとは別に1回の利用として数えます。現在は無料で提供・回数制限あり。'}</small></div><button className="primary-button" disabled={busy || advancedBusy || count < 100 || count > MAX_CHARS || !service?.configured || !reviewMode} onClick={() => void generateAdvanced()}>{advancedBusy ? <LoaderCircle size={17} className="spin" /> : <FileText size={17} />}{advancedBusy ? '詳細レポートを作成中…' : advanced ? '詳細レポートを開く' : '詳細レポートを作成'}</button>{advancedBusy && <p className="advanced-progress" role="status">原文の各区分と改善案を確認しています。このままお待ちください。</p>}{(!service?.configured || !reviewMode) && <small>詳細レポートはDeepSeek提供時に利用できます。</small>}</div>
+    {reportOpen && advanced && <AdvancedReport report={advanced} onClose={() => setReportOpen(false)} />}
     {(error || notice) && <div role={error ? 'alert' : 'status'} className={`feedback ${error ? 'error' : ''}`}>{error || notice}<button onClick={() => { setError(''); setNotice(''); }} aria-label="通知を閉じる"><X size={14} /></button></div>}
-    <div className="detector-footer"><span><LockKeyhole size={13} /> {mode === 'local' ? '文章分析は外部への送信・保存なし。' : `開始すると文章が${provider}に送信されます。`}</span><button className="primary-button" disabled={busy || count < minimum || count > MAX_CHARS || (mode === 'model' && !service?.configured)} onClick={() => void runAnalysis()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ScanLine size={17} />} {busy ? '分析しています' : mode === 'model' ? service?.sandbox ? 'テスト判定を開始' : reviewMode ? 'AIレビューを開始' : 'AI判定を開始' : '無料でチェックする'}<ArrowRight size={16} /></button></div>
+    <div className="detector-footer"><span><LockKeyhole size={13} /> {mode === 'local' ? '文章分析は外部への送信・保存なし。' : `開始すると文章が${provider}に送信されます。`}</span><button className="primary-button" disabled={busy || advancedBusy || count < minimum || count > MAX_CHARS || (mode === 'model' && !service?.configured)} onClick={() => void runAnalysis()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ScanLine size={17} />} {busy ? '分析しています' : mode === 'model' ? service?.sandbox ? 'テスト判定を開始' : reviewMode ? 'AIレビューを開始' : 'AI判定を開始' : '無料でチェックする'}<ArrowRight size={16} /></button></div>
     <div className="method-note"><Info size={13} /><p>{mode === 'model' ? <>{provider}の結果は参考情報です。<a href={reviewMode ? 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html' : 'https://copyleaks.com/privacy-policy'} target="_blank" rel="noreferrer">提供元のプライバシー <ArrowUpRight size={11} /></a>{service?.sandbox && <strong> テストモード：固定応答が返されます。実際の判定ではありません。</strong>}</> : <>統計的な文章分析による参考指標です。AIの使用を断定するものではありません。<a href="#method">分析の仕組み <ArrowUpRight size={11} /></a></>}</p></div>
   </section>;
 }

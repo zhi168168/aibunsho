@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { randomUUID, createHash } from 'node:crypto';
 import { DetectionError } from '../server/errors';
 import { createDeepSeekClient } from '../server/deepseek';
+import { createAdvancedClient } from '../server/advanced-report';
 export { DetectionError } from '../server/errors';
 
 type Config = { email?: string; key?: string; enabled: boolean; sandbox: boolean };
@@ -64,6 +65,7 @@ export function createCopyleaksClient(fetcher: typeof fetch = fetch) {
 }
 const detect = createCopyleaksClient();
 const review = createDeepSeekClient();
+const advanced = createAdvancedClient();
 const quota = new Map<string, { count: number; reset: number }>();
 let daily = { count: 0, reset: Date.now() + 86400000 };
 export async function handleDetection(req: IncomingMessage & { body?: unknown }, res: ServerResponse, env: NodeJS.ProcessEnv) {
@@ -87,6 +89,8 @@ export async function handleDetection(req: IncomingMessage & { body?: unknown },
       try { body = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new DetectionError(400, '送信形式が正しくありません。'); }
     }
     if (!body || typeof body !== 'object' || !('text' in body) || typeof body.text !== 'string') throw new DetectionError(400, '文章を入力してください。');
+    const advancedRequest = 'report' in body && body.report === 'advanced';
+    if (advancedRequest && !useDeepSeek) throw new DetectionError(400, '詳細レポートにはDeepSeekの設定が必要です。');
     const origin = req.headers.origin;
     if (origin) { let host: string; try { host = new URL(origin).host; } catch { throw new DetectionError(403, '許可されていないアクセスです。'); } if (host !== req.headers.host) throw new DetectionError(403, '許可されていないアクセスです。'); }
     const now = Date.now();
@@ -97,7 +101,7 @@ export async function handleDetection(req: IncomingMessage & { body?: unknown },
     if (daily.reset < now) daily = { count: 0, reset: now + 86400000 };
     if (entry.count >= 5 || daily.count >= 50) throw new DetectionError(429, '利用上限に達しました。時間をおいて再度お試しください。');
     entry.count++; daily.count++; quota.set(identity, entry);
-    send(200, useDeepSeek ? await review(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : await detect(body.text, c));
+    send(200, advancedRequest ? await advanced(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : useDeepSeek ? await review(body.text, env.DEEPSEEK_API_KEY?.trim(), env.DEEPSEEK_MODEL || 'deepseek-flash') : await detect(body.text, c));
   } catch (error) {
     if (error instanceof DetectionError) send(error.status, { error: error.message });
     else if (error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)) send(504, { error: '検出サービスへの接続がタイムアウトしました。結果は取得できませんでした。' });
