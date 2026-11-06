@@ -23,7 +23,10 @@ export function normalizeAdvanced(value: unknown, units: ReportUnit[]) {
   limitations.push('原文の引用一致は確認していますが、解釈や書き換えの正しさを保証するものではありません。');
   limitations.push('事実確認・出典との照合・盗作検査は実施していません。');
   if (sections.some(s => s.status === 'unreviewed')) limitations.unshift('未取得の区分があります。全文のレビューは完了していません。');
-  return { summary: v.summary.slice(0, 1200), strengths: list(v.strengths), priorities: list(v.priorities), limitations, sections };
+  // Use the validated sentence reviews so the overview cannot contradict a keep verdict.
+  const priorities = sections.filter(s => s.status === 'revise' || s.status === 'uncertain').slice(0, 3)
+    .map(s => `「${s.quote}」：${s.suggestion}`);
+  return { summary: v.summary.slice(0, 1200), strengths: list(v.strengths), priorities, limitations, sections };
 }
 
 export function createAdvancedClient(fetcher: typeof fetch = fetch) {

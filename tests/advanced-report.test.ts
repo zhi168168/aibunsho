@@ -36,6 +36,7 @@ test('quotes must belong to their own section and keep sections cannot supply re
   assert.equal(result.sections[0].status, 'unreviewed');
   assert.equal(result.sections[1].status, 'keep');
   assert.equal(result.sections[1].rewrite, '');
+  assert.deepEqual(result.priorities, [], 'unverified and keep sections cannot become revision priorities');
 });
 
 test('advanced generation makes one explicit call, retains source and exports real full report', async () => {
@@ -55,7 +56,7 @@ test('advanced generation makes one explicit call, retains source and exports re
   assert.equal(report.sourceText, text);
   assert.equal(report.analysis.signals.length, 8);
   const exported = advancedReportText(report);
-  for (const snippet of [text, '区分 1', '区分 2', value.summary, value.sections[0].rewrite, '事実', 'AI生成確率']) assert.ok(exported.includes(snippet), snippet);
+  for (const snippet of [text, '確認箇所 1', '確認箇所 2', value.summary, value.sections[0].rewrite, '事実', 'AI生成確率']) assert.ok(exported.includes(snippet), snippet);
 });
 
 test('advanced generation rejects invalid inputs before charge and truncated outputs without retry', async () => {

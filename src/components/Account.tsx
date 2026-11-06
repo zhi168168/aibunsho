@@ -84,7 +84,7 @@ export default function Account() {
   return <>
     <section className="section account-section" id="account" aria-busy={loading}>
       <span className="section-index">YOUR ACCOUNT</span><h2>ログイン・アカウント</h2>
-      <p>文章分析は登録不要。Basic・Proで、原文に基づく詳細レポートをご利用いただけます。</p>
+      <p>無料チェックは登録不要。Basic・Proでは、原文を引用した詳しい説明と改善案を確認できます。</p>
       {loading ? <p role="status">アカウントを確認しています…</p> : user ? <div className="account-signed-in">
         <strong>{user.name}</strong><span>{user.email}</span>
         {status && <p>{status.plan==='free'?'無料プラン':status.plan.toUpperCase()} {status.fullReport && <> · 残り <b>{status.remainingWords.toLocaleString('ja-JP')}</b> / {status.words.toLocaleString('ja-JP')} 語<br/>更新日：{new Date(status.periodEnd).toLocaleString('ja-JP')}</>}</p>}
@@ -92,7 +92,7 @@ export default function Account() {
         <button disabled={busy} onClick={()=>void action(async()=>{await api('auth/sign-out',{});setUser(null);setStatus(null);window.dispatchEvent(new Event('aibunsho:signed-out'));})}><LogOut size={16}/>ログアウト</button>
         <button disabled={busy} onClick={()=>void action(refresh)}>契約情報を再確認</button></div>
       </div> : <div className="account-box">
-        {!config?.configured && <p role="status">ログインサービスは準備中です。無料の文章分析は引き続き利用できます。</p>}
+        {!config?.configured && <p role="status">ログインサービスは準備中です。無料チェックは引き続き利用できます。</p>}
         {['login','register'].includes(view) && <><button className="google-signin" disabled={busy||!config?.google} onClick={()=>void action(async()=>{
           const result=await api('auth/sign-in/social',{provider:'google',callbackURL:`${window.location.origin}/#account`,errorCallbackURL:`${window.location.origin}/?error=auth#account`});secureNavigate(result.url,true);
         })}><LogIn size={17}/>Googleで続ける</button><div className="account-divider">またはメールアドレスで</div></>}
@@ -109,12 +109,12 @@ export default function Account() {
     </section>
     <section className="section pricing-section" id="pricing">
       <span className="section-index">PLANS & PRICING</span><h2>文章を、もっと深く理解する。</h2><p>無料の基本分析から、原文の根拠・解説・改善案をまとめた詳細レポートへ。</p>
-      {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料の文章分析をご利用いただけます。</p>}
+      {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
-        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>ブラウザ内の文章分析</li><li><Check size={15}/>8つの統計指標・文ごとの特徴</li><li><Check size={15}/>基本AIレビュー（回数制限あり）</li></ul><a className="text-link" href="#checker">無料でチェック →</a></article>
+        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>AIレビューの総合スコア</li><li><Check size={15}/>構成・表現・具体性・一貫性の4項目</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker">無料でチェック →</a></article>
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
           <h3>{plan.name}</h3><p className="price">${plan.price}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.first}<br/><small>初回の有料契約のみ。以降 ${plan.price}/月</small></p>
-          <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>完全な詳細レポート</li><li><Check size={15}/>原文引用・区分別の解説</li><li><Check size={15}/>改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
+          <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>完全な詳細レポート</li><li><Check size={15}/>原文を引用した詳しい説明</li><li><Check size={15}/>改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
           <button className="primary-button" disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?.checkoutEnabled?'購入受付準備中':`${plan.name}を申し込む`}</button>
         </article>)}
       </div>

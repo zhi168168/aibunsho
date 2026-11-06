@@ -2,12 +2,12 @@ import { plans } from '../../billing/plans.mjs';
 
 export default function PricingDetails() {
   return <>
-    <p>無料の文章分析に加え、Basic・ProではDeepSeekによる詳細レポートを作成できます。両プランの違いは月間の利用語数です。</p>
+    <p>無料AIレビューに加え、Basic・ProではDeepSeekによる詳細レポートを作成できます。両プランの違いは月間の利用語数です。</p>
     <div className="pricing-grid">
-      <article className="pricing-card"><h2>Free</h2><p className="price">$0</p><p>ブラウザ内の文章分析、8つの統計指標、文ごとの特徴。登録不要で利用できます。基本AIレビューは回数制限があります。</p><a href="/#checker">無料でチェック →</a></article>
+      <article className="pricing-card"><h2>Free</h2><p className="price">$0</p><p>総合スコアと、構成・表現・具体性・一貫性の4項目。登録不要で利用できます。回数制限があります。</p><a href="/#checker">無料でチェック →</a></article>
       {Object.entries(plans).map(([id,value]) => { const plan=value as {name:string;amount:string;firstAmount:string;words:number}; return <article key={id} className={`pricing-card ${id==='pro'?'featured':''}`}>
         <h2>{plan.name}</h2><p className="price">${plan.amount}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.firstAmount}<br/><small>初回有料契約のみ。以降 ${plan.amount}/月</small></p>
-        <ul><li>{plan.words.toLocaleString('ja-JP')}語 / 月</li><li>区分別の原文引用・解説・改善案</li><li>引用部分の書き換え例（未適用）</li><li>TXT保存・印刷 / PDF保存</li></ul><a className="text-link" href="/#account">ログイン・購入へ →</a>
+        <ul><li>{plan.words.toLocaleString('ja-JP')}語 / 月</li><li>原文を引用した説明と改善案</li><li>引用部分の書き換え例（未適用）</li><li>TXT保存・印刷 / PDF保存</li></ul><a className="text-link" href="/#account">ログイン・購入へ →</a>
       </article>; })}
     </div>
     <h2>請求・解約と利用枠</h2><p>米ドルの月額定期購入です。初回30日間の終了後、解約するまで通常月額で自動更新します。年払いはありません。税額と最終支払額は決済画面に表示されます。初回の割引は再契約やプラン変更で再適用されません。</p>

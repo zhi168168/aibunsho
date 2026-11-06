@@ -11,7 +11,12 @@ export default function AdvancedReport({ report, onClose }: { report: Report; on
     element?.showModal();
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { element?.close(); document.body.style.overflow = overflow; previous?.focus(); };
+    let printDetails: { element: HTMLDetailsElement; open: boolean }[] = [];
+    const beforePrint = () => { printDetails = Array.from(element?.querySelectorAll('details') ?? []).map(item => ({ element: item, open: item.open })); printDetails.forEach(item => { item.element.open = true; }); };
+    const afterPrint = () => { printDetails.forEach(item => { item.element.open = item.open; }); printDetails = []; };
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint', afterPrint);
+    return () => { window.removeEventListener('beforeprint', beforePrint); window.removeEventListener('afterprint', afterPrint); element?.close(); document.body.style.overflow = overflow; previous?.focus(); };
   }, []);
   function download() {
     const url = URL.createObjectURL(new Blob(['\ufeff' + advancedReportText(report)], { type: 'text/plain;charset=utf-8' }));
@@ -19,16 +24,28 @@ export default function AdvancedReport({ report, onClose }: { report: Report; on
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const reviewed = report.sections.filter(s => s.status !== 'unreviewed').length;
+  const concerns = report.sections.filter(s => s.status !== 'keep');
+  const kept = report.sections.filter(s => s.status === 'keep');
+  function reviewCard(s: Report['sections'][number]) {
+    return <section className={`report-paragraph status-${s.status}`} key={s.id}>
+      <div className="report-paragraph-heading"><h3>{sectionLabels[s.status]}</h3></div>
+      {s.quote && <div className="report-citation"><h4>この一文について</h4><blockquote>{s.quote}</blockquote></div>}
+      <h4>{s.status === 'keep' ? '良いところ' : s.status === 'unreviewed' ? '確認できなかったこと' : '気になるところ'}</h4><p>{s.finding}</p>
+      {s.suggestion && <><h4>どうすればよい？</h4><p>{s.suggestion}</p></>}
+      {s.rewrite && <div className="report-rewrite"><h4>書き換えるなら、このように</h4><p>{s.rewrite}</p><small>引用した部分だけの提案です。原文は変更していません。</small></div>}
+      <details className="report-source"><summary>前後の文章を読む</summary><p>{s.text}</p></details>
+    </section>;
+  }
   return createPortal(<dialog ref={dialog} className="advanced-report-dialog" aria-labelledby="advanced-report-title" onCancel={e => { e.preventDefault(); onClose(); }}>
     <div className="advanced-report-toolbar"><span>AIチェッカー / 詳細レポート</span><div><button onClick={download}><ArrowDownToLine size={15} /> TXT保存</button><button onClick={() => window.print()}><Printer size={15} /> 印刷 / PDF保存</button><button className="icon-button" onClick={onClose} aria-label="詳細レポートを閉じる"><X size={19} /></button></div></div>
     <article className="advanced-report-document">
-      <header><span className="report-eyebrow">AIチェッカー · WRITING REVIEW</span><h1 id="advanced-report-title">文章の詳細レポート</h1><p>原文を読み解き、次の修正へ。</p><div className="report-metadata"><span>{new Date(report.analyzedAt).toLocaleString('ja-JP')}</span><span>{report.analysis.characters.toLocaleString('ja-JP')}文字 · {report.sections.length}区分</span><span>{report.provider} / {report.modelVersion}</span></div></header>
+      <header><span className="report-eyebrow">AIチェッカー · WRITING REVIEW</span><h1 id="advanced-report-title">文章の詳細レポート</h1><p>良いところと、直すと伝わりやすくなるところ。</p><div className="report-metadata"><span>{new Date(report.analyzedAt).toLocaleString('ja-JP')}</span><span>{report.analysis.characters.toLocaleString('ja-JP')}文字 · {report.sections.length}か所を確認</span><span>{report.provider} / {report.modelVersion}</span></div></header>
       <p className="advanced-report-notice">文体・読みやすさの補助レビューです。AI生成確率や執筆者の証明ではありません。原文は変更していません。入力変更・再読み込みでレポートは消えるため、必要な結果は保存してください。PDF保存は印刷画面で「PDFに保存」を選択してください。</p>
-      <section><h2>01 / 総評</h2><p>{report.summary}</p><p className={`coverage-note ${reviewed !== report.sections.length ? 'incomplete' : ''}`}>有効な原文引用付きレビュー：{reviewed} / {report.sections.length}区分{reviewed !== report.sections.length ? '（一部未取得）' : ''}。長文は分割し、短い段落が多い場合はまとめて表示しています。</p><div className="report-findings-grid"><div><h3>維持したい点</h3>{report.strengths.length ? <ul>{report.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul> : <p>十分な指摘は取得できませんでした。</p>}</div><div><h3>優先して確認する点</h3>{report.priorities.length ? <ol>{report.priorities.map((s, i) => <li key={i}>{s}</li>)}</ol> : <p>追加の確認事項は取得できませんでした。</p>}</div></div></section>
-      <section><h2>02 / 文章の観測指標</h2><p className="report-note">ルールによる観測値です。AI生成確率ではありません。</p><div className="report-metrics">{report.analysis.signals.map(s => <div key={s.id}><h3>{s.name}<span>{s.available ? `${s.value} / 100` : '算出不可'}</span></h3><p>{s.detail}</p></div>)}</div></section>
-      <section><h2>03 / 原文と区分別レビュー</h2><p className="report-note">書き換え例は根拠の引用部分だけの提案です。自動適用されません。意味・事実・出典を確認してから利用してください。</p>{report.sections.map(s => <section className={`report-paragraph status-${s.status}`} key={s.id}><div className="report-paragraph-heading"><h3>区分 {String(s.id).padStart(2, '0')}</h3><span>{sectionLabels[s.status]}</span></div><div className="report-source"><span>原文</span><p>{s.text}</p></div>{s.quote && <div className="report-citation"><h4>着目した原文</h4><blockquote>{s.quote}</blockquote></div>}<h4>{s.status === 'unreviewed' ? '取得状況' : '根拠と解釈'}</h4><p>{s.finding}</p>{s.suggestion && <><h4>確認・改善案</h4><p>{s.suggestion}</p></>}{s.rewrite && <div className="report-rewrite"><h4>引用部分の書き換え例 · 未適用</h4><p>{s.rewrite}</p></div>}</section>)}</section>
-      <section><h2>04 / 評価の限界</h2><ul>{[...report.limitations, ...report.analysis.cautions, ...(report.analysis.limited ? ['短さ・文数・言語のため統計評価の材料が限られています。'] : []), 'スコアを下げるためではなく、文章の目的に合うかを基準に見直してください。'].map((s, i) => <li key={i}>{s}</li>)}</ul></section>
-      <section className="report-original"><h2>05 / 入力原文（全文）</h2><p>{report.sourceText}</p></section>
+      <section><h2>まず、全体の評価</h2><p>{report.summary}</p>{reviewed !== report.sections.length && <p className="coverage-note incomplete">{report.sections.length - reviewed}か所を確認できませんでした。下の説明をご確認ください。</p>}<div className="report-findings-grid"><div><h3>この文章の良いところ</h3>{report.strengths.length ? <ul>{report.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul> : <p>具体的な指摘を取得できませんでした。</p>}</div><div><h3>見直すなら、ここから</h3>{report.priorities.length ? <ol>{report.priorities.map((s, i) => <li key={i}>{s}</li>)}</ol> : <p>大きく直す必要がある箇所は挙がっていません。</p>}</div></div></section>
+      <section><h2>気になる箇所と、直し方</h2><p className="report-note">提案は任意です。文章の目的や伝えたいことに合うものだけ取り入れてください。</p>{concerns.length ? concerns.map(reviewCard) : <p>今回のレビューでは、修正や追加確認が必要な箇所は挙がりませんでした。</p>}</section>
+      <section><details><summary>そのまま残してよいところ（{kept.length}件）</summary>{kept.map(reviewCard)}</details></section>
+      <section><details><summary>このレポートで分からないこと</summary><ul>{report.limitations.map((s, i) => <li key={i}>{s}</li>)}</ul></details></section>
+      <section className="report-original"><details><summary>入力した文章の全文</summary><p>{report.sourceText}</p></details></section>
       <footer><span>aibunsho.com · {report.version} · {report.analysis.version}</span><span>レポートID：{report.scanId}</span></footer>
     </article>
   </dialog>, document.body);
