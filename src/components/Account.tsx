@@ -170,22 +170,23 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     </dialog>
     <dialog ref={pricingDialog} className="pricing-dialog" aria-labelledby="pricing-title" onCancel={e=>{e.preventDefault();setPricingOpen(false);}} onClick={e=>{if(e.target===e.currentTarget){const rect=e.currentTarget.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)setPricingOpen(false);}}}>
     <section className="pricing-section" id="pricing">
-      <header className="pricing-dialog-heading"><div><span className="section-index">PLANS & PRICING</span><h2 id="pricing-title">料金プランを選ぶ</h2><p>無料チェックは登録不要。詳しい改善案はBasic・Proで確認できます。</p></div><button className="icon-button" onClick={()=>setPricingOpen(false)} aria-label="料金プランを閉じる"><X size={20}/></button></header>
+      <header className="pricing-dialog-heading"><div><h2 id="pricing-title">料金プランを選ぶ</h2><p>詳しい説明・改善案・書き換え例はBasic・Proで。<a href="#checker" onClick={()=>setPricingOpen(false)}>無料チェックを続ける →</a></p></div><button className="icon-button" onClick={()=>setPricingOpen(false)} aria-label="料金プランを閉じる"><X size={20}/></button></header>
+      <div className={`pricing-consent-panel ${agreed?'is-agreed':''}`}><label className="purchase-consent"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} aria-describedby="pricing-consent-help"/><span><strong>はじめに、購入条件をご確認ください</strong><span><a href="/privacy/#billing" target="_blank" rel="noreferrer">購入条件</a>を確認し、初月終了後は選択プランの通常月額で自動更新されることに同意します。</span></span></label><p id="pricing-consent-help" role="status">{agreed?'同意済みです。下からプランを選べます。':'上のチェックを入れると、下の申し込みボタンが有効になります。'}</p></div>
       <div className="pricing-dialog-content">
       {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
-        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>参考スコアと結論</li><li><Check size={15}/>主な理由を簡潔に表示</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker" onClick={()=>setPricingOpen(false)}>無料でチェック →</a></article>
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
           <h3>{plan.name}</h3><p className="price">${plan.price}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.first}<br/><small>初回の有料契約のみ。以降 ${plan.price}/月</small></p>
-          <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>完全な詳細レポート</li><li><Check size={15}/>原文を引用した詳しい説明</li><li><Check size={15}/>改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
-          <button className="primary-button" disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?.checkoutEnabled?'購入受付準備中':`${plan.name}を申し込む`}</button>
+          <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>原文の詳しい説明・改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
+          <button className="primary-button" aria-describedby={!agreed?'pricing-consent-help':undefined} disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?.checkoutEnabled?'購入受付準備中':`${plan.name}を申し込む`}</button>
+          {!agreed && <small className="plan-consent-hint">上の購入条件にチェックしてから選択</small>}
         </article>)}
       </div>
 
-      <p className="pricing-note">表示価格は米ドルです。税額・最終支払額は決済画面で確認できます。年払いはありません。解約は「契約・解約を管理」から行え、支払済み期間の終了まで利用できます。未使用の語数は繰り越されません。</p>
-      <details className="pricing-note"><summary>語数・利用枠について</summary><p>日本語に対応した単語分割（Intl.Segmenter）で計算します。空白・句読点は数えません。文字数とは異なります。詳細レポートの作成ごとに全文の語数を消費し、失敗時は利用枠を返します。作成済みレポートを再表示しても追加消費はありません。1回100〜10,000文字。初回は30日間、以降は決済サービスの月次契約期間ごとに枠が更新されます。</p></details>
+      <p className="pricing-note">米ドル・月払い。税額・最終支払額は決済画面で確認できます。いつでも解約でき、支払済み期間の終了まで利用できます。</p>
+      <details className="pricing-note"><summary>語数・利用枠・解約について</summary><p>日本語に対応した単語分割（Intl.Segmenter）で計算します。空白・句読点は数えません。文字数とは異なります。詳細レポートの作成ごとに全文の語数を消費し、失敗時は利用枠を返します。作成済みレポートを再表示しても追加消費はありません。1回100〜10,000文字。初回は30日間、以降は決済サービスの月次契約期間ごとに枠が更新されます。未使用の語数は繰り越されません。年払いはありません。解約は「契約・解約を管理」から行えます。</p></details>
+      {message && <p className="account-message" role="status">{message}</p>}
       </div>
-      <footer className="pricing-dialog-footer"><label className="purchase-consent"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)}/><span><a href="/privacy/#billing" target="_blank" rel="noreferrer">購入条件</a>を確認し、初月終了後は選択プランの通常月額で自動更新されることに同意します。</span></label><p>購入条件への同意後、Basic・Proの申し込みボタンを押せます。</p>{message && <p className="account-message" role="status">{message}</p>}</footer>
     </section>
     </dialog>
   </>;
