@@ -1,3 +1,4 @@
+import FooterBadges from './components/FooterBadges';
 import { useState } from 'react';
 import { ArrowDown, Check, ChevronRight, Menu, X } from 'lucide-react';
 import { Brand } from './components/Icons';
@@ -19,7 +20,7 @@ export default function App() {
     <main><section className="hero"><h1><span>AIチェッカー</span><br />日本語の文章を無料チェック<span className="hero-period">。</span></h1><p>日本語の文章を貼り付けて、文体の規則性や繰り返しを無料で確認。<br />100〜10,000文字に対応し、文ごとの特徴と分析レポートを表示します。</p><div className="hero-benefits"><span><Check size={13} /> 文章分析は無料</span><span><Check size={13} /> 日本語対応</span><span><Check size={13} /> 登録不要</span></div><a href="#checker" className="hero-jump" aria-label="チェッカーへ移動"><ArrowDown size={16} /></a></section>
       <div className="main-container"><Detector /><div className="under-tool"><span>考えるためのヒントを。決めつけるための数字ではなく。</span><a href="#method">このツールについて <ChevronRight size={12} /></a></div><Account /><Content /><section className="section trust-section" id="site-info"><span className="section-index">SITE INFORMATION</span><h2>このサイトの利用とプライバシー</h2><p>文章分析は端末内で完結します。任意のモデル機能は表示中の提供元に文章を送信します。結果はAI使用の証拠ではありません。</p><p id="privacy"><a href="/privacy/">プライバシーポリシーとデータの扱い</a></p><p id="terms"><a href="/privacy/#terms">利用条件と判定の限界</a></p></section></div>
     </main>
-    <footer className="site-footer"><div><Brand small /><span className="footer-description">言葉の特徴を、ていねいに読み解く。</span></div><div className="footer-links"><a href="/ai-checker/guide/">使い方ガイド</a><a href="/pricing/">料金</a><a href="/privacy/">プライバシー</a><a href="/privacy/#terms">利用について</a><a href="mailto:zhihaosong168+aibunsho@gmail.com">お問い合わせ</a><span>© 2026 AIチェッカー</span></div></footer>
+    <footer className="site-footer"><div><Brand small /><span className="footer-description">言葉の特徴を、ていねいに読み解く。</span></div><div className="footer-links"><a href="/ai-checker/guide/">使い方ガイド</a><a href="/pricing/">料金</a><a href="/privacy/">プライバシー</a><a href="/privacy/#terms">利用について</a><a href="mailto:zhihaosong168+aibunsho@gmail.com">お問い合わせ</a><span>© 2026 AIチェッカー</span></div><FooterBadges /></footer>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
   </>;
 }

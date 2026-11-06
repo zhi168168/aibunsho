@@ -1,3 +1,4 @@
+import FooterBadges from './components/FooterBadges';
 import { policies } from './App';
 import PricingDetails from './components/PricingDetails';
 
@@ -31,6 +32,6 @@ export function InformationPage({ path }: { path: string }) {
       </>}
       <p><a className="text-link" href="/#checker">無料のAIチェッカーで文章をチェックする →</a></p>
     </article></main>
-    <footer className="site-footer"><a href="/">AIチェッカー</a><div className="footer-links"><a href="/ai-checker/guide/">使い方ガイド</a><a href="/privacy/">プライバシー・利用条件</a></div></footer>
+    <footer className="site-footer"><a href="/">AIチェッカー</a><div className="footer-links"><a href="/ai-checker/guide/">使い方ガイド</a><a href="/privacy/">プライバシー・利用条件</a></div><FooterBadges /></footer>
   </>;
 }
