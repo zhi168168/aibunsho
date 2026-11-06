@@ -11,6 +11,12 @@ const badges = [
   { name: 'aihustle', href: 'https://aihustle.tools' },
   { name: 'dang.ai', href: 'https://dang.ai' },
   { name: 'The AI Navigator', href: 'https://www.theainavigator.com/?utm_source=badge&utm_medium=referral&utm_campaign=as_seen_on&utm_content=dark', image: 'https://custom-images.strikinglycdn.com/res/hrscywv4p/image/upload/c_limit,fl_lossy,h_9000,w_1200,f_auto,q_auto/4561714/890717_74823.png', alt: 'As seen on The AI Navigator' },
+  { name: 'Twelve Tools', href: 'https://twelve.tools', image: 'https://twelve.tools/badge0-white.svg', alt: 'Featured on Twelve Tools', width: 148, height: 40 },
+  { name: 'Webspot', href: 'https://webspot.app', image: 'https://webspot.app/featured-light.svg', alt: 'Featured on Webspot', height: 54, rel: 'noopener noreferrer' },
+  { name: 'neeed.directory', href: 'https://neeed.directory/products/ai-checker?utm_source=ai-checker', image: 'https://neeed.directory/badges/neeed-badge-light.svg', alt: 'Featured on neeed.directory', width: 139 },
+  { name: 'Startup Fame', href: 'https://startupfa.me/', image: 'https://startupfa.me/badges/featured-badge-small.webp', alt: 'Featured on Startup Fame', width: 224, height: 36 },
+  { name: 'MakeItLast', href: 'https://www.makeitla.st/', image: 'https://www.makeitla.st/badge/makeitlast-badge-dark.svg?v=3', alt: 'Featured on MakeItLast', title: 'Featured on MakeItLast', width: 252, height: 76 },
+  { name: 'CodeTrendy', href: 'https://codetrendy.com/?utm_source=partner-site&utm_medium=badge', image: 'https://codetrendy.com/api/badge?style=classic', alt: 'Listed on CodeTrendy', height: 54, rel: 'nofollow noopener noreferrer' },
 ];
 
 export default function FooterBadges() {
@@ -50,7 +56,7 @@ export default function FooterBadges() {
   return <section className="footer-directories" aria-label="掲載サイト・関連リンク">
     <div className="footer-directories-heading"><span>掲載サイト・関連リンク</span><button type="button" aria-controls="footer-badges" aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? '自動スクロールを再開' : '自動スクロールを一時停止'}</button></div>
     <div id="footer-badges" className="footer-badges" ref={viewport} tabIndex={0} aria-label="関連サイト一覧（横にスクロールできます）" onTouchStart={() => setPaused(true)} onWheel={() => setPaused(true)}>
-      {badges.map(badge => <a key={badge.href} className={badge.image ? 'footer-badge footer-badge-image' : 'footer-badge footer-badge-text'} href={badge.href} target="_blank" rel="noopener" title={badge.title || badge.name}>
+      {badges.map(badge => <a key={badge.href} className={badge.image ? 'footer-badge footer-badge-image' : 'footer-badge footer-badge-text'} href={badge.href} target="_blank" rel={badge.rel || 'noopener'} title={badge.title || badge.name}>
         {badge.image ? <><img src={badge.image} alt={badge.alt} width={badge.width} height={badge.height} loading="lazy" onError={event => { event.currentTarget.hidden = true; }} /><span className="footer-badge-fallback">{badge.name}</span></> : badge.name}
       </a>)}
     </div>
