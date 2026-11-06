@@ -73,6 +73,8 @@
 .google-signin{display:flex;align-items:center;gap:10px;border:1px solid var(--border);padding:13px;background:#18171d;border-radius:9px;color:#ece5f5;font:inherit}
 .account-divider{text-align:center;font-size:11px;color:#81868c;margin:20px 0}
 .account-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:20px}.account-links button{border:0;background:none;font:inherit;font-size:12px;color:#afa5bb;padding:0;text-decoration:underline}
+.check-actions{display:flex;align-items:center;gap:14px;margin-top:20px}.check-actions .primary-button{flex:1;min-height:46px}.check-actions small{font-size:11px;color:var(--subtle);white-space:nowrap}.check-privacy{margin-top:12px;color:var(--muted);font-size:10px;line-height:1.8}.check-privacy svg{margin-right:5px}.google-signin svg{background:white;border-radius:50%;padding:2px;box-sizing:content-box}
+@media(max-width:760px){.check-actions{flex-direction:column;gap:8px}.check-actions .primary-button{width:100%}}
 .account-message{padding:16px 20px;background:#211d2a;border-radius:10px;font-size:13px;line-height:1.8}
 .account-dialog{color-scheme:dark}.account-dialog .account-box fieldset{gap:12px}.account-dialog .account-box input{padding:10px 12px}.account-dialog .account-divider{margin:14px 0}.account-dialog .account-tabs{margin-bottom:16px}.account-dialog .account-policy{margin:0}.account-dialog .account-links{margin-top:16px;gap:10px}.mobile-pricing{display:none}
 @media(max-width:760px){.site-header>.nav-cta{display:none}.nav .mobile-pricing{display:block}.advanced-report-entry{order:6}}

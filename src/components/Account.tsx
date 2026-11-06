@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Check, CreditCard, LogIn, LogOut, X } from 'lucide-react';
+import { Check, CreditCard, LogOut, X } from 'lucide-react';
+import { GoogleIcon } from './Icons';
 
 type User = { id: string; name: string; email: string };
 type Capabilities = { configured: boolean; google: boolean; emailRegistration: boolean; passwordReset: boolean; checkoutEnabled: boolean };
@@ -115,7 +116,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
         {!config?.configured && <p role="status">ログインサービスは準備中です。無料チェックは引き続き利用できます。</p>}
         {['login','register'].includes(view) && <><button className="google-signin" disabled={busy||!config?.google} onClick={()=>void action(async()=>{
           const result=await api('auth/sign-in/social',{provider:'google',callbackURL:`${window.location.origin}/#account`,errorCallbackURL:`${window.location.origin}/?error=auth#account`});secureNavigate(result.url,true);
-        })}><LogIn size={17}/>Googleで続ける</button><div className="account-divider">またはメールアドレスで</div></>}
+        })}><GoogleIcon />Googleで続ける</button><div className="account-divider">またはメールアドレスで</div></>}
         <form onSubmit={e=>void submit(e)}><fieldset disabled={busy||!config?.configured}>
           {view==='register' && <label>お名前<input name="name" required autoComplete="name" maxLength={100}/></label>}
           {view!=='reset' && <label>メールアドレス<input name="email" type="email" required autoComplete="email" maxLength={254}/></label>}
