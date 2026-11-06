@@ -176,7 +176,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
       {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
-          <h3>{plan.name}</h3><p className="price">${plan.price}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.first}<br/><small>初回の有料契約のみ。以降 ${plan.price}/月</small></p>
+          <h3>{plan.name}</h3><p className="price">${status?.introductoryEligible===false?plan.price:plan.first}<small>{status?.introductoryEligible===false?' / 月':' / 初月（30日間）'}</small></p><p className="intro-price">{status?.introductoryEligible===false?'通常の月額プラン':`2か月目以降 $${plan.price} / 月`}<br/><small>{status?.introductoryEligible===false?'初月割引は初回の有料契約のみ対象です。':'初月価格は初回の有料契約のみ。以降は通常月額で自動更新。'}</small></p>
           <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>原文の詳しい説明・改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
           <button className="primary-button" aria-describedby={!agreed?'pricing-consent-help':undefined} disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?.checkoutEnabled?'購入受付準備中':`${plan.name}を申し込む`}</button>
           {!agreed && <small className="plan-consent-hint">上の購入条件にチェックしてから選択</small>}
