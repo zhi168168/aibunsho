@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Check, CreditCard, LogIn, LogOut } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Check, CreditCard, LogIn, LogOut, X } from 'lucide-react';
 
 type User = { id: string; name: string; email: string };
 type Capabilities = { configured: boolean; google: boolean; emailRegistration: boolean; passwordReset: boolean; checkoutEnabled: boolean };
@@ -23,7 +23,7 @@ function secureNavigate(value: string, google = false) {
   preserveDraft(); window.location.assign(url.href);
 }
 
-export default function Account() {
+export default function Account({ onUserChange }: { onUserChange?: (signedIn: boolean) => void }) {
   const [config,setConfig] = useState<Capabilities|null>(null);
   const [user,setUser] = useState<User|null>(null);
   const [status,setStatus] = useState<Status|null>(null);
@@ -32,6 +32,18 @@ export default function Account() {
   const [busy,setBusy] = useState(false);
   const [loading,setLoading] = useState(true);
   const [agreed,setAgreed] = useState(false);
+  const [open,setOpen] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { onUserChange?.(Boolean(user)); }, [user, onUserChange]);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const element = dialog.current;
+    element?.showModal();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { element?.close(); document.body.style.overflow = overflow; previous?.focus(); };
+  }, [open]);
   async function refresh() {
     try {
       const capabilities = await api('auth/config'); setConfig(capabilities);
@@ -47,12 +59,17 @@ export default function Account() {
   }
   useEffect(()=>{
     const query=new URLSearchParams(window.location.search);
-    if(query.get('view')==='reset') setView('reset');
-    if(query.get('error')) setMessage('認証リンクが無効か、期限切れです。もう一度お試しください。');
+    if(query.get('view')==='reset') { setView('reset'); setOpen(true); }
+    if(query.get('error')) { setMessage('認証リンクが無効か、期限切れです。もう一度お試しください。'); setOpen(true); }
+    const fromHash=()=>{if(window.location.hash==='#account') setOpen(true);};
+    fromHash();
+    const show=(event:Event)=>{setView((event as CustomEvent).detail==='register'?'register':'login');setMessage('');setOpen(true);};
+    window.addEventListener('aibunsho:open-account',show);
+    window.addEventListener('hashchange',fromHash);
     void refresh();
     const update=()=>{void refresh();};
     window.addEventListener('aibunsho:usage',update);
-    return()=>window.removeEventListener('aibunsho:usage',update);
+    return()=>{window.removeEventListener('aibunsho:usage',update);window.removeEventListener('aibunsho:open-account',show);window.removeEventListener('hashchange',fromHash);};
   },[]);
   async function action(task:()=>Promise<void>) {
     setBusy(true);setMessage('');
@@ -63,7 +80,7 @@ export default function Account() {
     const email=String(form.get('email')||'');const password=String(form.get('password')||'');
     await action(async()=>{
       const callbackURL=`${window.location.origin}/#account`;
-      if(view==='login'){await api('auth/sign-in/email',{email,password,callbackURL});await refresh();}
+      if(view==='login'){await api('auth/sign-in/email',{email,password,callbackURL});await refresh();setOpen(false);}
       if(view==='register'){
         await api('auth/sign-up/email',{name:String(form.get('name')),email,password,callbackURL});
         setMessage('確認メールを送信しました。メール内のリンクを開いてからログインしてください。');setView('login');
@@ -78,12 +95,14 @@ export default function Account() {
     });
   }
   async function checkout(plan:string) {
-    if(!user) {setMessage('購入するにはログインしてください。');document.getElementById('account')?.scrollIntoView({behavior:'smooth'});return;}
+    if(!user) {setView('login');setMessage('購入するにはログインしてください。');setOpen(true);return;}
     await action(async()=>{const result=await api('billing/checkout',{plan,agreed});secureNavigate(result.url);});
   }
   return <>
-    <section className="section account-section" id="account" aria-busy={loading}>
-      <span className="section-index">YOUR ACCOUNT</span><h2>ログイン・アカウント</h2>
+    <dialog ref={dialog} className="account-dialog" aria-labelledby="account-title" onCancel={e=>{e.preventDefault();setOpen(false);}} onClick={e=>{if(e.target===e.currentTarget){const rect=e.currentTarget.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)setOpen(false);}}}>
+    <section className="account-section" id="account" aria-busy={loading}>
+      <button className="icon-button account-close" onClick={()=>setOpen(false)} aria-label="アカウント画面を閉じる"><X size={20}/></button>
+      <span className="section-index">YOUR ACCOUNT</span><h2 id="account-title">{user?'アカウント':({login:'ログイン',register:'新規登録',forgot:'パスワードの再設定',reset:'新しいパスワードを設定',verify:'確認メールを再送'})[view]}</h2>
       <p>無料チェックは登録不要。Basic・Proでは、原文を引用した詳しい説明と改善案を確認できます。</p>
       {loading ? <p role="status">アカウントを確認しています…</p> : user ? <div className="account-signed-in">
         <strong>{user.name}</strong><span>{user.email}</span>
@@ -92,6 +111,7 @@ export default function Account() {
         <button disabled={busy} onClick={()=>void action(async()=>{await api('auth/sign-out',{});setUser(null);setStatus(null);window.dispatchEvent(new Event('aibunsho:signed-out'));})}><LogOut size={16}/>ログアウト</button>
         <button disabled={busy} onClick={()=>void action(refresh)}>契約情報を再確認</button></div>
       </div> : <div className="account-box">
+        {['login','register'].includes(view) && <div className="account-tabs" aria-label="ログイン・新規登録"><button type="button" aria-pressed={view==='login'} disabled={busy} onClick={()=>{setView('login');setMessage('');}}>ログイン</button><button type="button" aria-pressed={view==='register'} disabled={busy} onClick={()=>{setView('register');setMessage('');}}>新規登録</button></div>}
         {!config?.configured && <p role="status">ログインサービスは準備中です。無料チェックは引き続き利用できます。</p>}
         {['login','register'].includes(view) && <><button className="google-signin" disabled={busy||!config?.google} onClick={()=>void action(async()=>{
           const result=await api('auth/sign-in/social',{provider:'google',callbackURL:`${window.location.origin}/#account`,errorCallbackURL:`${window.location.origin}/?error=auth#account`});secureNavigate(result.url,true);
@@ -107,6 +127,7 @@ export default function Account() {
       </div>}
       {message && <p className="account-message" role="status">{message}</p>}
     </section>
+    </dialog>
     <section className="section pricing-section" id="pricing">
       <span className="section-index">PLANS & PRICING</span><h2>文章を、もっと深く理解する。</h2><p>無料の基本分析から、原文の根拠・解説・改善案をまとめた詳細レポートへ。</p>
       {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}

@@ -61,7 +61,9 @@
 .deepseek-result .model-sections{max-height:330px}.review-evidence .review-observation blockquote{overflow-wrap:anywhere}
 @media(max-width:760px){.review-dimensions summary{font-size:11px}.review-genre,.review-scale-note{font-size:10px}.deepseek-result .model-sections{max-height:360px}}
 /* Accounts and monthly report plans share the existing restrained card system. */
-.account-nav{color:inherit;font-size:13px;white-space:nowrap;margin-left:16px}
+.account-nav-actions{display:flex;align-items:center;gap:14px;flex-shrink:0}.account-nav{color:inherit;font-size:13px;white-space:nowrap;background:none;padding:8px 0}.register-nav{background:var(--accent);color:#19131f;border-radius:20px;padding:10px 16px;font-size:12px;white-space:nowrap}
+.account-dialog{width:min(480px,calc(100% - 32px));max-height:calc(100dvh - 48px);padding:32px;border:1px solid var(--border);border-radius:20px;background:var(--panel);color:inherit;overflow:auto;overscroll-behavior:contain}.account-dialog::backdrop{background:#000a;backdrop-filter:blur(5px)}.account-dialog .account-section{position:relative}.account-close{position:absolute;top:-12px;right:-12px}.account-dialog h2{font-size:24px;margin:12px 0}.account-dialog .account-section>p{font-size:12px;color:var(--subtle);line-height:1.9}.account-dialog .account-box{border:0;padding:0;max-width:none;background:none}.account-tabs{display:flex;gap:4px;padding:4px;border-radius:10px;background:#1b1920;margin-bottom:24px}.account-tabs button{flex:1;border-radius:7px;padding:10px;background:none;color:var(--muted)}.account-tabs button[aria-pressed=true]{background:#34303f;color:#eee8f5}.import-hint{font-size:10px;color:var(--muted);line-height:1.8;margin:10px 0 0}
+@media(max-width:760px){.account-nav-actions{gap:10px}.account-nav-actions .account-nav{margin:0;font-size:11px}.register-nav{padding:8px 10px;font-size:11px}.account-dialog{padding:26px}.site-header{column-gap:12px}}
 .account-box{max-width:430px;padding:28px;background:var(--panel);border:1px solid var(--border);border-radius:16px;margin-top:24px}
 .account-box fieldset{border:0;padding:0;margin:0;display:grid;gap:16px;min-width:0}
 .account-box label{display:grid;gap:7px;font-size:13px;color:#d6cfe0}
@@ -72,6 +74,8 @@
 .account-divider{text-align:center;font-size:11px;color:#81868c;margin:20px 0}
 .account-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:20px}.account-links button{border:0;background:none;font:inherit;font-size:12px;color:#afa5bb;padding:0;text-decoration:underline}
 .account-message{padding:16px 20px;background:#211d2a;border-radius:10px;font-size:13px;line-height:1.8}
+.account-dialog{color-scheme:dark}.account-dialog .account-box fieldset{gap:12px}.account-dialog .account-box input{padding:10px 12px}.account-dialog .account-divider{margin:14px 0}.account-dialog .account-tabs{margin-bottom:16px}.account-dialog .account-policy{margin:0}.account-dialog .account-links{margin-top:16px;gap:10px}.mobile-pricing{display:none}
+@media(max-width:760px){.site-header>.nav-cta{display:none}.nav .mobile-pricing{display:block}.advanced-report-entry{order:6}}
 .account-signed-in{display:grid;gap:10px;margin-top:24px;padding:24px;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow-wrap:anywhere}
 .account-buttons{display:flex;flex-wrap:wrap;gap:12px}.account-buttons button{display:flex;align-items:center;gap:7px;background:#201d29;border:1px solid var(--border);padding:10px 14px;border-radius:8px;color:#d6cfe0}
 .pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:30px 0 22px}

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
-import { ArrowRight, ArrowUpRight, ChevronDown, FileText, Info, LoaderCircle, LockKeyhole, ScanLine, TextCursorInput, Trash2, Upload, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, FileText, Info, LoaderCircle, LockKeyhole, ScanLine, Trash2, Upload, X } from 'lucide-react';
 import { countChars, MAX_CHARS } from '../lib/analyzer';
-import { samples } from '../lib/samples';
+import { importText } from '../lib/import-text';
+import { openAccount } from '../lib/account-dialog';
 import { modelReport, type ModelResult as ModelResultType, type ServiceStatus } from '../lib/model';
 import ModelResult from './ModelResult';
 import AnalysisLoading, { type AnalysisPhase } from './AnalysisLoading';
@@ -54,16 +55,12 @@ export default function Detector() {
   }
   async function loadFile(file?: File) {
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.txt')) { setError('UTF-8形式の .txt ファイルを選択してください。'); return; }
-    if (file.size > 200000) { setError('ファイルは200 KB以下にしてください。'); return; }
     const ticket = ++requestRef.current;
     try {
-      const content = await file.text();
+      const content = await importText(file);
       if (ticket !== requestRef.current) return;
-      if (content.includes('\ufffd')) { setError('文字コードを読み取れません。UTF-8で保存してから再度お試しください。'); return; }
-      if (countChars(content) > MAX_CHARS) { setError('10,000文字以内のファイルを選択してください。'); return; }
       updateText(content); setNotice(`${file.name} を読み込みました。`);
-    } catch { setError('ファイルを読み込めませんでした。再度お試しください。'); }
+    } catch (e) { if (ticket === requestRef.current) setError(e instanceof Error ? e.message : 'ファイルを読み込めませんでした。再度お試しください。'); }
   }
   async function runAnalysis() {
     if (busy || advancedBusy) return;
@@ -99,7 +96,8 @@ export default function Detector() {
       const response = await fetch('/api/detect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, report: 'advanced' }), signal: AbortSignal.timeout(120000) });
       const data = await response.json();
       if (!response.ok) {
-        if (response.status === 401 || response.status === 402) document.getElementById(response.status === 401 ? 'account' : 'pricing')?.scrollIntoView({behavior:'smooth'});
+        if (response.status === 401) openAccount();
+        if (response.status === 402) document.getElementById('pricing')?.scrollIntoView({behavior:'smooth'});
         throw new Error(data.error || '詳細レポートを作成できませんでした。');
       }
       window.dispatchEvent(new Event('aibunsho:usage'));
@@ -127,11 +125,11 @@ export default function Detector() {
     <div className="detector-toolbar"><span className="tool-name"><ScanLine size={16} /> テキストチェッカー</span><span className="local-status"><i /> {service?.configured ? service.sandbox ? 'テストモード' : '無料AIレビュー' : '準備中'}</span></div>
     <div className="workspace">
       <div className="editor-pane">
-        <div className="pane-heading"><label htmlFor="check-text">チェックする文章</label><span className="language-label">日本語 <ChevronDown size={12} /></span></div>
+        <div className="pane-heading"><label htmlFor="check-text">チェックする文章</label></div>
         <textarea id="check-text" ref={editorRef} value={text} onChange={e => updateText(e.target.value)} placeholder={'ここに文章を貼り付けてください。\n\n文章のリズムや表現の特徴を分析し、\nAIらしさを考えるヒントを見つけます。'} spellCheck={false} aria-describedby="text-limits" onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); void runAnalysis(); } }} />
         <div className="editor-meta"><span id="text-limits" className={count > MAX_CHARS ? 'over-limit' : ''}><b>{count.toLocaleString('ja-JP')}</b> / 10,000 文字</span><button className="icon-button" onClick={() => { updateText(''); editorRef.current?.focus(); }} aria-label="文章をクリア" disabled={!text}><Trash2 size={15} /></button></div>
-        <div className="editor-bottom"><span>サンプルを試す</span><div className="sample-buttons"><button onClick={() => updateText(samples.structured)}><ScanLine size={13} /> 定型的な文章</button><button onClick={() => updateText(samples.personal)}><TextCursorInput size={13} /> 自然な文章</button></div></div>
-        <div className="editor-actions"><button className="upload-button" onClick={() => fileRef.current?.click()}><Upload size={15} /> TXT を読み込む</button><span>{minimum}文字以上</span><input ref={fileRef} type="file" accept=".txt,text/plain" onChange={onFileChange} hidden aria-label="TXTファイルを選択" /></div>
+        <div className="editor-actions"><button className="upload-button" onClick={() => fileRef.current?.click()}><Upload size={15} /> TXT・Word を読み込む</button><span>{minimum}文字以上</span><input ref={fileRef} type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onFileChange} hidden aria-label="TXT・Wordファイルを選択" /></div>
+        <p className="import-hint">TXT・Word（.docx）対応。ファイルをここにドラッグしても読み込めます。</p>
       </div>
       <div className="results-pane" aria-busy={busy}>
         <div className="pane-heading"><span>分析結果</span><span className={`result-status ${modelResult ? 'done' : ''}`}>{busy ? '分析中' : modelResult ? '分析完了' : '入力待ち'}</span></div>
