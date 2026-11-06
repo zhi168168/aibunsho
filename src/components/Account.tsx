@@ -34,7 +34,10 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
   const [loading,setLoading] = useState(true);
   const [agreed,setAgreed] = useState(false);
   const [open,setOpen] = useState(false);
+  const [pricingOpen,setPricingOpen] = useState(false);
+  const resumePricing = useRef(false);
   const dialog = useRef<HTMLDialogElement>(null);
+  const pricingDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { onUserChange?.(Boolean(user)); }, [user, onUserChange]);
   useEffect(() => {
     if (!open) return;
@@ -45,6 +48,16 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     document.body.style.overflow = 'hidden';
     return () => { element?.close(); document.body.style.overflow = overflow; previous?.focus(); };
   }, [open]);
+  useEffect(() => {
+    if (!pricingOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const element = pricingDialog.current;
+    element?.showModal();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { element?.close(); document.body.style.overflow = overflow; previous?.focus(); };
+  }, [pricingOpen]);
+  function showPricing() { setOpen(false);setAgreed(false);setMessage('');setPricingOpen(true); }
   async function refresh() {
     try {
       const capabilities = await api('auth/config'); setConfig(capabilities);
@@ -62,15 +75,16 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     const query=new URLSearchParams(window.location.search);
     if(query.get('view')==='reset') { setView('reset'); setOpen(true); }
     if(query.get('error')) { setMessage('認証リンクが無効か、期限切れです。もう一度お試しください。'); setOpen(true); }
-    const fromHash=()=>{if(window.location.hash==='#account') setOpen(true);};
+    const fromHash=()=>{if(window.location.hash==='#account') {setPricingOpen(false);setOpen(true);} if(window.location.hash==='#pricing') showPricing();};
     fromHash();
-    const show=(event:Event)=>{setView((event as CustomEvent).detail==='register'?'register':'login');setMessage('');setOpen(true);};
+    const show=(event:Event)=>{resumePricing.current=false;setPricingOpen(false);setView((event as CustomEvent).detail==='register'?'register':'login');setMessage('');setOpen(true);};
+    window.addEventListener('aibunsho:open-pricing',showPricing);
     window.addEventListener('aibunsho:open-account',show);
     window.addEventListener('hashchange',fromHash);
     void refresh();
     const update=()=>{void refresh();};
     window.addEventListener('aibunsho:usage',update);
-    return()=>{window.removeEventListener('aibunsho:usage',update);window.removeEventListener('aibunsho:open-account',show);window.removeEventListener('hashchange',fromHash);};
+    return()=>{window.removeEventListener('aibunsho:usage',update);window.removeEventListener('aibunsho:open-account',show);window.removeEventListener('aibunsho:open-pricing',showPricing);window.removeEventListener('hashchange',fromHash);};
   },[]);
   async function action(task:()=>Promise<void>) {
     setBusy(true);setMessage('');
@@ -81,7 +95,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     const email=String(form.get('email')||'');const password=String(form.get('password')||'');
     await action(async()=>{
       const callbackURL=`${window.location.origin}/#account`;
-      if(view==='login'){await api('auth/sign-in/email',{email,password,callbackURL});await refresh();setOpen(false);}
+      if(view==='login'){await api('auth/sign-in/email',{email,password,callbackURL});await refresh();setOpen(false);if(resumePricing.current){resumePricing.current=false;setAgreed(false);setPricingOpen(true);}}
       if(view==='register'){
         await api('auth/sign-up/email',{name:String(form.get('name')),email,password,callbackURL});
         setMessage('確認メールを送信しました。メール内のリンクを開いてからログインしてください。');setView('login');
@@ -96,7 +110,8 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     });
   }
   async function checkout(plan:string) {
-    if(!user) {setView('login');setMessage('購入するにはログインしてください。');setOpen(true);return;}
+    if(!agreed) {setMessage('購入条件を確認し、同意にチェックを入れてください。');return;}
+    if(!user) {resumePricing.current=true;setPricingOpen(false);setView('login');setMessage('購入するにはログインしてください。ログイン後に料金プランをもう一度選択できます。');setOpen(true);return;}
     await action(async()=>{const result=await api('billing/checkout',{plan,agreed});secureNavigate(result.url);});
   }
   return <>
@@ -129,20 +144,25 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
       {message && <p className="account-message" role="status">{message}</p>}
     </section>
     </dialog>
-    <section className="section pricing-section" id="pricing">
-      <span className="section-index">PLANS & PRICING</span><h2>文章を、もっと深く理解する。</h2><p>無料の基本分析から、原文の根拠・解説・改善案をまとめた詳細レポートへ。</p>
+    <dialog ref={pricingDialog} className="pricing-dialog" aria-labelledby="pricing-title" onCancel={e=>{e.preventDefault();setPricingOpen(false);}} onClick={e=>{if(e.target===e.currentTarget){const rect=e.currentTarget.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)setPricingOpen(false);}}}>
+    <section className="pricing-section" id="pricing">
+      <header className="pricing-dialog-heading"><div><span className="section-index">PLANS & PRICING</span><h2 id="pricing-title">料金プランを選ぶ</h2><p>無料チェックは登録不要。詳しい改善案はBasic・Proで確認できます。</p></div><button className="icon-button" onClick={()=>setPricingOpen(false)} aria-label="料金プランを閉じる"><X size={20}/></button></header>
+      <div className="pricing-dialog-content">
       {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
-        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>わかりやすい結論と説明</li><li><Check size={15}/>原文の引用と理由・4項目の評価</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker">無料でチェック →</a></article>
+        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>わかりやすい結論と説明</li><li><Check size={15}/>原文の引用と理由・4項目の評価</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker" onClick={()=>setPricingOpen(false)}>無料でチェック →</a></article>
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
           <h3>{plan.name}</h3><p className="price">${plan.price}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.first}<br/><small>初回の有料契約のみ。以降 ${plan.price}/月</small></p>
           <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>完全な詳細レポート</li><li><Check size={15}/>原文を引用した詳しい説明</li><li><Check size={15}/>改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
           <button className="primary-button" disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?.checkoutEnabled?'購入受付準備中':`${plan.name}を申し込む`}</button>
         </article>)}
       </div>
-      <label className="purchase-consent"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)}/><span><a href="/privacy/#billing">購入条件</a>を確認し、初月終了後は選択プランの通常月額で自動更新されることに同意します。</span></label>
+
       <p className="pricing-note">表示価格は米ドルです。税額・最終支払額は決済画面で確認できます。年払いはありません。解約は「契約・解約を管理」から行え、支払済み期間の終了まで利用できます。未使用の語数は繰り越されません。</p>
       <details className="pricing-note"><summary>語数・利用枠について</summary><p>日本語に対応した単語分割（Intl.Segmenter）で計算します。空白・句読点は数えません。文字数とは異なります。詳細レポートの作成ごとに全文の語数を消費し、失敗時は利用枠を返します。作成済みレポートを再表示しても追加消費はありません。1回100〜10,000文字。初回は30日間、以降は決済サービスの月次契約期間ごとに枠が更新されます。</p></details>
+      </div>
+      <footer className="pricing-dialog-footer"><label className="purchase-consent"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)}/><span><a href="/privacy/#billing" target="_blank" rel="noreferrer">購入条件</a>を確認し、初月終了後は選択プランの通常月額で自動更新されることに同意します。</span></label><p>購入条件への同意後、Basic・Proの申し込みボタンを押せます。</p>{message && <p className="account-message" role="status">{message}</p>}</footer>
     </section>
+    </dialog>
   </>;
 }
