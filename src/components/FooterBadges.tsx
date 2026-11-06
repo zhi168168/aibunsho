@@ -24,6 +24,7 @@ export default function FooterBadges() {
     let frame = 0;
     let previous = 0;
     let direction = 1;
+    let position = element.scrollLeft;
     let waitUntil = 0;
     const tick = (time: number) => {
       const elapsed = previous ? Math.min(time - previous, 50) : 0;
@@ -31,13 +32,15 @@ export default function FooterBadges() {
       if (!paused && !element.matches(':hover, :focus-within') && !reducedMotion.matches && time > waitUntil) {
         const end = element.scrollWidth - element.clientWidth;
         if (end > 0) {
-          element.scrollLeft += direction * elapsed * 0.035;
+          position = Math.max(0, Math.min(end, position + direction * elapsed * 0.035));
+          element.scrollLeft = position;
           if ((direction === 1 && element.scrollLeft >= end - 1) || (direction === -1 && element.scrollLeft <= 1)) {
             direction *= -1;
             waitUntil = time + 1600;
           }
         }
       }
+      if (paused || element.matches(':hover, :focus-within') || reducedMotion.matches) position = element.scrollLeft;
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
