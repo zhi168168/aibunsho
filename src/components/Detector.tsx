@@ -137,7 +137,7 @@ export default function Detector() {
         <div className="pane-heading"><span>分析結果</span><span className={`result-status ${modelResult ? 'done' : ''}`}>{busy ? '分析中' : modelResult ? '分析完了' : '入力待ち'}</span></div>
         <div className="results-content" aria-live="polite">
           {!modelResult && !busy && <div className="empty-result"><div className="scan-illustration" aria-hidden="true"><span className="scan-corner top-left" /><span className="scan-corner top-right" /><span className="scan-corner bottom-left" /><span className="scan-corner bottom-right" /><FileText size={31} strokeWidth={1.1} /><span className="scan-beam" /></div><h2>{!service?.configured ? `${reviewMode ? 'AIレビュー' : 'AI判定'}は、ただいま準備中。` : 'その文章を、もう少し深く。'}</h2><p>{!service?.configured ? <>現在、モデルサービスの接続を確認しています。<br />しばらくしてから再度お試しください。</> : <>文章を入力して、チェックを開始。<br />分析結果がここに表示されます。</>}</p><div className="empty-signal"><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /></div></div>}
-          {busy && <AnalysisLoading phase={phase} model={true} provider={provider} />}
+          {busy && <AnalysisLoading phase={phase} model={true} />}
           {modelResult && <ModelResult result={modelResult} copied={copied} onCopy={() => void copyReport()} onDownload={downloadReport} />}
 
         </div>

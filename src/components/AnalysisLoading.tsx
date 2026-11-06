@@ -2,10 +2,10 @@ import { Check, LoaderCircle } from 'lucide-react';
 
 export type AnalysisPhase = 'reading' | 'analyzing' | 'preparing';
 
-export default function AnalysisLoading({ phase, model, provider }: { phase: AnalysisPhase; model: boolean; provider: string }) {
+export default function AnalysisLoading({ phase, model }: { phase: AnalysisPhase; model: boolean }) {
   const steps = [
     { id: 'reading', label: '文章を読み込み' },
-    { id: 'analyzing', label: model ? `${provider}で文体を分析中` : '文章の特徴を分析' },
+    { id: 'analyzing', label: model ? 'AI大規模言語モデルで文章を分析中' : '文章の特徴を分析' },
     { id: 'preparing', label: '結果をまとめています' },
   ];
   const current = steps.findIndex(step => step.id === phase);
