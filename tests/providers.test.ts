@@ -10,6 +10,16 @@ const dimensions = ['structure', 'expression', 'specificity', 'consistency'].map
 const validReview = { score: null, assessment: 'uncertain', genre: 'general', summary: '定型的な表現がありますが、AI利用は断定できません。', dimensions, limitations: ['文体だけでは作成方法を特定できません。'], observations: [{ text: '日本語の文章を確認します。', reason: '同じ表現が繰り返されています。', direction: 'supports', dimension: 'structure' }, { text: '原文にない引用です。', reason: 'この引用は除外されます。', direction: 'counter', dimension: 'specificity' }] };
 const completion = (content: unknown, finish_reason = 'stop') => new Response(JSON.stringify({ model: 'deepseek-flash', choices: [{ finish_reason, message: { content: JSON.stringify(content) } }] }), { status: 200 });
 
+test('brief reasons require a dimension backed by a verified source quote', () => {
+  const result = normalizeReview({...validReview, briefReasons:[
+    {dimension:'structure',text:'同じ説明が繰り返されています。'},
+    {dimension:'specificity',text:'この根拠の原文引用は存在しません。'},
+    {dimension:'unknown',text:'不明な観点です。'},
+    {dimension:'structure',text:'長'.repeat(91)},
+  ]}, text);
+  assert.deepEqual(result.briefReasons,[{dimension:'structure',text:'同じ説明が繰り返されています。'}]);
+});
+
 test('API status reads the supplied current configuration without exposing credentials', async () => {
   const env: NodeJS.ProcessEnv = { DETECTION_PROVIDER: 'deepseek', DETECTION_ENABLED: 'false' };
   const server = createServer((req, res) => { void handleDetection(req, res, env); });
@@ -50,7 +60,7 @@ test('DeepSeek requests JSON and returns only excerpts present in the actual inp
   assert.equal(result.score, null);
   assert.equal(result.observations.length, 1);
   assert.equal(result.provider, 'DeepSeek');
-  assert.ok(modelReport(result).includes('AIが書いた確率を表すものではありません'));
+  assert.ok(modelReport(result).includes('AIが書いた確率ではありません'));
 });
 test('DeepSeek rejects malformed and truncated outputs', async () => {
   for (const content of [{ ...validReview, score: 101 }, { ...validReview, score: '50' }, { ...validReview, assessment: 'human' }, null]) {

@@ -5,3 +5,7 @@ export function openAccount(view: 'login' | 'register' = 'login') {
 export function openPricing() {
   window.dispatchEvent(new Event('aibunsho:open-pricing'));
 }
+
+export function openReportUpgrade() {
+  window.dispatchEvent(new Event('aibunsho:report-upgrade'));
+}

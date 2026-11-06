@@ -1,14 +1,12 @@
-import { AlertTriangle, ArrowDownToLine, Check, Copy } from 'lucide-react';
-import { dimensionNames, observationLabels, reviewConclusions, reviewScoreNote, type ModelResult as ModelResultType } from '../lib/model';
-export default function ModelResult({ result, copied, onCopy, onDownload }: { result: ModelResultType; copied: boolean; onCopy: () => void; onDownload: () => void }) {
+import { AlertTriangle, ArrowDownToLine, ArrowRight, Check, Copy, FileText, LoaderCircle } from 'lucide-react';
+import { freeReviewReasons, reviewConclusions, type ModelResult as ModelResultType } from '../lib/model';
+export default function ModelResult({ result, copied, onCopy, onDownload, onAdvanced, advancedBusy = false }: { result: ModelResultType; copied: boolean; onCopy: () => void; onDownload: () => void; onAdvanced?: () => void; advancedBusy?: boolean }) {
   if (result.provider === 'DeepSeek') {
     return <div className="model-result deepseek-result">
-      <div className="review-verdict"><span className="report-eyebrow">この文章について</span><h2>{reviewConclusions[result.assessment]}</h2><p>{result.summary}</p></div>
-      <p className="review-caveat">文章の特徴をもとにした参考意見です。AIが書いたかどうかは断定できません。</p>
-      <section className="review-evidence" aria-label="原文と、その理由"><h3>どこを見て、そう考えた？</h3>{result.observations.length ? result.observations.map((o, i) => <article className={`review-example direction-${o.direction}`} key={i}><span>{observationLabels[o.direction]}</span><blockquote>{o.text}</blockquote><p>{o.reason}</p></article>) : <p className="review-empty-evidence">原文を引用した説明を取得できませんでした。下の項目別の説明を参考にしてください。</p>}</section>
-      <details className="review-score-details" open={result.observations.length === 0}><summary>数値の内訳と、4つの観点を見る</summary><p>{reviewScoreNote}</p><p className="review-overall-score">文体の参考スコア：<strong>{result.score === null ? '今回は算出を保留' : `${result.score} / 100`}</strong>{result.score === null && <small>短さや根拠不足、異なる特徴の混在により、数値を出せるだけの判断材料がそろいませんでした。</small>}</p><div className="review-dimension-explanations" aria-label="4項目の文体レビュー">{result.dimensions.map(d => <article key={d.id}><h4>{dimensionNames[d.id]}<span>{d.score} / 100</span></h4><p>{d.explanation}</p></article>)}</div></details>
-      {result.limitations.length > 0 && <details className="review-limits"><summary>今回の確認で分からないこと</summary><ul>{result.limitations.map((item, i) => <li key={i}>{item}</li>)}</ul></details>}
-      <div className="report-actions"><span>DeepSeek · {result.modelVersion}</span><button className="icon-button" onClick={onCopy} aria-label={copied ? 'コピーしました' : 'レポートをコピー'}>{copied ? <Check size={15} /> : <Copy size={15} />}</button><button className="icon-button" onClick={onDownload} aria-label="レポートをダウンロード"><ArrowDownToLine size={15} /></button></div>
+      <div className="free-review-conclusion"><span className="report-eyebrow">チェック結果</span><div className="free-review-score"><strong>{result.score === null ? '判断を保留' : result.score}<span>{result.score === null ? '' : '/ 100'}</span></strong><span>AI文章の傾向 · 参考スコア</span></div><h2>{reviewConclusions[result.assessment]}</h2><p>AIが書いた確率ではありません。文章だけでAI使用を断定できません。</p></div>
+      <section className="free-review-reasons" aria-label="主な理由"><h3>主な理由</h3>{freeReviewReasons(result).length ? <ul>{freeReviewReasons(result).map((reason, i)=><li key={i}>{reason}</li>)}</ul> : <p>判断できるだけの根拠を取得できませんでした。</p>}</section>
+      <div className="report-actions"><span>無料チェック結果</span><button className="icon-button" onClick={onCopy} aria-label={copied ? 'コピーしました' : 'レポートをコピー'}>{copied ? <Check size={15} /> : <Copy size={15} />}</button><button className="icon-button" onClick={onDownload} aria-label="レポートをダウンロード"><ArrowDownToLine size={15} /></button></div>
+      {onAdvanced && <div className="free-review-upgrade"><button className="primary-button" disabled={advancedBusy} onClick={onAdvanced}>{advancedBusy ? <LoaderCircle size={17} className="spin"/> : <FileText size={17}/>} {advancedBusy?'詳細分析レポートを作成中…':'詳細分析レポートを見る'}<ArrowRight size={16}/></button><p>原文ごとの詳しい説明・改善案・書き換え例を確認。Basic・Pro対象。</p></div>}
     </div>;
   }
   return <div className="model-result">

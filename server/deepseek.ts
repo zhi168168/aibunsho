@@ -35,6 +35,12 @@ export function normalizeReview(value: unknown, text: string): Omit<DeepSeekResu
     return [{ text: o.text, reason: o.reason.slice(0, 400), direction: o.direction as 'supports' | 'counter' | 'neutral', dimension: o.dimension as ReviewDimension }];
   });
   const analysis = analyzeText(text);
+  const briefReasons: NonNullable<DeepSeekResult['briefReasons']> = Array.isArray(v.briefReasons) ? v.briefReasons.slice(0, 4).flatMap((item: unknown) => {
+    if (!item || typeof item !== 'object') return [];
+    const reason = item as Record<string, unknown>;
+    if (!reviewDimensions.includes(reason.dimension as ReviewDimension) || typeof reason.text !== 'string' || !reason.text.trim() || Array.from(reason.text).length > 90 || !observations.some(o => o.dimension === reason.dimension)) return [];
+    return [{ dimension: reason.dimension as ReviewDimension, text: reason.text.trim() }];
+  }) : [];
   const limitations = v.limitations.filter((s): s is string => typeof s === 'string' && Boolean(s.trim())).slice(0, 4).map(s => s.slice(0, 300));
   limitations.push(...analysis.cautions);
   if (!limitations.length) limitations.push('文章の特徴だけでは、AI使用や執筆者を証明できません。');
@@ -47,7 +53,7 @@ export function normalizeReview(value: unknown, text: string): Omit<DeepSeekResu
     assessment = 'uncertain'; score = null;
     limitations.unshift('短さ・根拠不足・特徴の混在により、総合スコアの表示を保留しました。');
   }
-  return { reviewVersion: 'evidence-review-2.0', genre: v.genre, score, assessment, summary: v.summary.slice(0, 1200), observations, dimensions, limitations: [...new Set(limitations)] };
+  return { reviewVersion: 'evidence-review-2.0', genre: v.genre, score, assessment, summary: v.summary.slice(0, 1200), observations, dimensions, briefReasons, limitations: [...new Set(limitations)] };
 }
 
 export function createDeepSeekClient(fetcher: typeof fetch = fetch) {

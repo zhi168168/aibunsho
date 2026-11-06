@@ -58,6 +58,30 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     return () => { element?.close(); document.body.style.overflow = overflow; previous?.focus(); };
   }, [pricingOpen]);
   function showPricing() { setOpen(false);setAgreed(false);setMessage('');setPricingOpen(true); }
+  useEffect(() => {
+    let checking = false;
+    const upgrade = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        const session = await api('auth/get-session');
+        setUser(session?.user || null);
+        if (session?.user) {
+          const current = await api('billing/status');
+          setStatus(current);
+          if (current.fullReport) { window.dispatchEvent(new Event('aibunsho:generate-report'));return; }
+          showPricing();
+        } else {
+          resumePricing.current=true;setPricingOpen(false);setView('login');
+          setMessage('詳細分析レポートを見るにはログインしてください。ログイン後、料金プランをご案内します。');setOpen(true);
+        }
+      } catch {
+        setMessage('アカウントの状態を確認できませんでした。再度お試しください。');setOpen(true);
+      } finally { checking=false; }
+    };
+    window.addEventListener('aibunsho:report-upgrade',upgrade);
+    return () => window.removeEventListener('aibunsho:report-upgrade',upgrade);
+  }, []);
   async function refresh() {
     try {
       const capabilities = await api('auth/config'); setConfig(capabilities);
@@ -94,7 +118,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
     e.preventDefault();const form=new FormData(e.currentTarget);
     const email=String(form.get('email')||'');const password=String(form.get('password')||'');
     await action(async()=>{
-      const callbackURL=`${window.location.origin}/#account`;
+      const callbackURL=`${window.location.origin}/#${resumePricing.current?'pricing':'account'}`;
       if(view==='login'){await api('auth/sign-in/email',{email,password,callbackURL});await refresh();setOpen(false);if(resumePricing.current){resumePricing.current=false;setAgreed(false);setPricingOpen(true);}}
       if(view==='register'){
         await api('auth/sign-up/email',{name:String(form.get('name')),email,password,callbackURL});
@@ -130,7 +154,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
         {['login','register'].includes(view) && <div className="account-tabs" aria-label="ログイン・新規登録"><button type="button" aria-pressed={view==='login'} disabled={busy} onClick={()=>{setView('login');setMessage('');}}>ログイン</button><button type="button" aria-pressed={view==='register'} disabled={busy} onClick={()=>{setView('register');setMessage('');}}>新規登録</button></div>}
         {!config?.configured && <p role="status">ログインサービスは準備中です。無料チェックは引き続き利用できます。</p>}
         {['login','register'].includes(view) && <><button className="google-signin" disabled={busy||!config?.google} onClick={()=>void action(async()=>{
-          const result=await api('auth/sign-in/social',{provider:'google',callbackURL:`${window.location.origin}/#account`,errorCallbackURL:`${window.location.origin}/?error=auth#account`});secureNavigate(result.url,true);
+          const result=await api('auth/sign-in/social',{provider:'google',callbackURL:`${window.location.origin}/#${resumePricing.current?'pricing':'account'}`,errorCallbackURL:`${window.location.origin}/?error=auth#account`});secureNavigate(result.url,true);
         })}><GoogleIcon />Googleで続ける</button><div className="account-divider">またはメールアドレスで</div></>}
         <form onSubmit={e=>void submit(e)}><fieldset disabled={busy||!config?.configured}>
           {view==='register' && <label>お名前<input name="name" required autoComplete="name" maxLength={100}/></label>}
@@ -150,7 +174,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
       <div className="pricing-dialog-content">
       {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
-        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>わかりやすい結論と説明</li><li><Check size={15}/>原文の引用と理由・4項目の評価</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker" onClick={()=>setPricingOpen(false)}>無料でチェック →</a></article>
+        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>参考スコアと結論</li><li><Check size={15}/>主な理由を簡潔に表示</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker" onClick={()=>setPricingOpen(false)}>無料でチェック →</a></article>
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
           <h3>{plan.name}</h3><p className="price">${plan.price}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.first}<br/><small>初回の有料契約のみ。以降 ${plan.price}/月</small></p>
           <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>完全な詳細レポート</li><li><Check size={15}/>原文を引用した詳しい説明</li><li><Check size={15}/>改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>

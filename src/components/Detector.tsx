@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'r
 import { ArrowRight, ArrowUpRight, FileText, Info, LoaderCircle, LockKeyhole, ScanLine, Trash2, Upload, X } from 'lucide-react';
 import { countChars, MAX_CHARS } from '../lib/analyzer';
 import { importText } from '../lib/import-text';
-import { openAccount, openPricing } from '../lib/account-dialog';
+import { openAccount, openPricing, openReportUpgrade } from '../lib/account-dialog';
 import { modelReport, type ModelResult as ModelResultType, type ServiceStatus } from '../lib/model';
 import ModelResult from './ModelResult';
 import AnalysisLoading, { type AnalysisPhase } from './AnalysisLoading';
@@ -25,6 +25,7 @@ export default function Detector() {
   const fileRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const requestRef = useRef(0);
+  const upgradeTicket = useRef<number | null>(null);
   const count = countChars(text);
   const minimum = service?.minCharacters ?? 100;
   const provider = service?.provider ?? 'DeepSeek';
@@ -87,6 +88,11 @@ export default function Detector() {
     } catch (e) { if (ticket === requestRef.current) setError(e instanceof Error ? e.message : '分析に失敗しました。'); }
     finally { if (ticket === requestRef.current) setBusy(false); }
   }
+  useEffect(() => {
+    const generate = () => { if(upgradeTicket.current===requestRef.current && modelResult) { upgradeTicket.current=null;void generateAdvanced(); } };
+    window.addEventListener('aibunsho:generate-report',generate);
+    return () => window.removeEventListener('aibunsho:generate-report',generate);
+  }, [text, advanced, busy, advancedBusy, modelResult]);
   async function generateAdvanced() {
     if (advanced) { setReportOpen(true); return; }
     if (busy || advancedBusy || count < 100 || count > MAX_CHARS) return;
@@ -138,12 +144,11 @@ export default function Detector() {
         <div className="results-content" aria-live="polite">
           {!modelResult && !busy && <div className="empty-result"><div className="scan-illustration" aria-hidden="true"><span className="scan-corner top-left" /><span className="scan-corner top-right" /><span className="scan-corner bottom-left" /><span className="scan-corner bottom-right" /><FileText size={31} strokeWidth={1.1} /><span className="scan-beam" /></div><h2>{!service?.configured ? `${reviewMode ? 'AIレビュー' : 'AI判定'}は、ただいま準備中。` : 'その文章を、もう少し深く。'}</h2><p>{!service?.configured ? <>現在、モデルサービスの接続を確認しています。<br />しばらくしてから再度お試しください。</> : <>文章を入力して、チェックを開始。<br />分析結果がここに表示されます。</>}</p><div className="empty-signal"><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /></div></div>}
           {busy && <AnalysisLoading phase={phase} model={true} />}
-          {modelResult && <ModelResult result={modelResult} copied={copied} onCopy={() => void copyReport()} onDownload={downloadReport} />}
+          {modelResult && <ModelResult result={modelResult} copied={copied} onCopy={() => void copyReport()} onDownload={downloadReport} onAdvanced={()=>{if(advanced){setReportOpen(true);}else{upgradeTicket.current=requestRef.current;openReportUpgrade();}}} advancedBusy={advancedBusy} />}
 
         </div>
       </div>
     </div>
-    <div className="advanced-report-entry" aria-busy={advancedBusy}><div><span className="report-eyebrow">DETAILED WRITING REVIEW</span><h3>原文の根拠から、具体的な改善案まで。</h3><a className="text-link" href="#pricing" onClick={e=>{e.preventDefault();openPricing();}}>Basic・Proの料金を見る →</a><p>気になる箇所・その理由・改善案を、原文と並べて確認。良い点もまとめます。印刷・PDF保存に対応。</p><small>{advanced ? '作成済みのレポートを再表示します。追加の送信はありません。' : '作成時に全文をDeepSeekへ送り、入力と生成結果をWaffoで内容確認します。通常レビューとは別のリクエストです。Basic・Pro限定。全文の語数を月間利用枠から消費します。'}</small></div><button className="primary-button" disabled={busy || advancedBusy || count < 100 || count > MAX_CHARS || !service?.configured || !reviewMode} onClick={() => void generateAdvanced()}>{advancedBusy ? <LoaderCircle size={17} className="spin" /> : <FileText size={17} />}{advancedBusy ? '詳細レポートを作成中…' : advanced ? '詳細レポートを開く' : '詳細レポートを作成'}</button>{advancedBusy && <p className="advanced-progress" role="status">原文の気になる箇所と改善案を確認しています。このままお待ちください。</p>}{(!service?.configured || !reviewMode) && <small>詳細レポートはDeepSeek提供時に利用できます。</small>}</div>
     {reportOpen && advanced && <AdvancedReport report={advanced} onClose={() => setReportOpen(false)} />}
     {(error || notice) && <div role={error ? 'alert' : 'status'} className={`feedback ${error ? 'error' : ''}`}>{error || notice}<button onClick={() => { setError(''); setNotice(''); }} aria-label="通知を閉じる"><X size={14} /></button></div>}
     <div className="method-note"><Info size={13} /><p>{<>{provider}の結果は参考情報です。<a href={reviewMode ? 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html' : 'https://copyleaks.com/privacy-policy'} target="_blank" rel="noreferrer">提供元のプライバシー <ArrowUpRight size={11} /></a>{service?.sandbox && <strong> テストモード：固定応答が返されます。実際の判定ではありません。</strong>}</>}</p></div>
