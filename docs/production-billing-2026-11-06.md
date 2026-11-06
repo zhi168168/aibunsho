@@ -9,3 +9,12 @@
 - 本地忽略环境和 Vercel Production Secret 改为 `WAFFO_ENVIRONMENT=prod`、`WAFFO_CHECKOUT_ENABLED=true`；发布后生效。账户数据库及商品仍独立于 Typeflow。
 
 本次只开启正式收款和检查收银台，不执行真实购买或扣款。真实支付、后续自动续费与真实退款不属于已验证结果；服务端仍必须验签并对账，不能以跳转成功作为付费凭证。
+
+## 线上验证
+
+- 激活部署 `KixXkWmetbep9nrMJVWgCry549AW`（a8f9b2c）状态 Ready。
+- `/api/auth/config` 返回200，Google、邮箱注册、密码恢复和 checkoutEnabled 均为 true。
+- 已验证的本站测试账户密码登录200，Basic 正式结账会话创建200；Waffo 收银台显示今日应付 $4.99，30天后 $9.99/月，无测试模式标识。
+- `/api/billing/status` 返回200，mode=prod；未付款的测试账户仍为 free、fullReport=false、无有效订阅。
+- 无签名 webhook 请求返回401。公开 `/pricing/` 的两档价格、词数、登录购买入口与仅月付条款正确。
+- 本轮未修改业务代码，未产生实际支付；本地私有会话及测试凭据继续排除在 Git 外。
