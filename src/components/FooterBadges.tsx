@@ -15,7 +15,6 @@ const badges = [
 
 export default function FooterBadges() {
   const viewport = useRef<HTMLDivElement>(null);
-  const interacting = useRef(false);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export default function FooterBadges() {
     const tick = (time: number) => {
       const elapsed = previous ? Math.min(time - previous, 50) : 0;
       previous = time;
-      if (!paused && !interacting.current && !reducedMotion.matches && time > waitUntil) {
+      if (!paused && !element.matches(':hover, :focus-within') && !reducedMotion.matches && time > waitUntil) {
         const end = element.scrollWidth - element.clientWidth;
         if (end > 0) {
           element.scrollLeft += direction * elapsed * 0.035;
@@ -47,7 +46,7 @@ export default function FooterBadges() {
 
   return <section className="footer-directories" aria-label="掲載サイト・関連リンク">
     <div className="footer-directories-heading"><span>掲載サイト・関連リンク</span><button type="button" aria-controls="footer-badges" aria-pressed={paused} onClick={() => setPaused(!paused)}>{paused ? '自動スクロールを再開' : '自動スクロールを一時停止'}</button></div>
-    <div id="footer-badges" className="footer-badges" ref={viewport} tabIndex={0} aria-label="関連サイト一覧（横にスクロールできます）" onMouseEnter={() => { interacting.current = true; }} onMouseLeave={() => { interacting.current = false; }} onFocus={() => { interacting.current = true; }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) interacting.current = false; }} onTouchStart={() => setPaused(true)} onWheel={() => setPaused(true)}>
+    <div id="footer-badges" className="footer-badges" ref={viewport} tabIndex={0} aria-label="関連サイト一覧（横にスクロールできます）" onTouchStart={() => setPaused(true)} onWheel={() => setPaused(true)}>
       {badges.map(badge => <a key={badge.href} className={badge.image ? 'footer-badge footer-badge-image' : 'footer-badge footer-badge-text'} href={badge.href} target="_blank" rel="noopener" title={badge.title || badge.name}>
         {badge.image ? <><img src={badge.image} alt={badge.alt} width={badge.width} height={badge.height} loading="lazy" onError={event => { event.currentTarget.hidden = true; }} /><span className="footer-badge-fallback">{badge.name}</span></> : badge.name}
       </a>)}
