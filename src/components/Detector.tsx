@@ -151,6 +151,6 @@ export default function Detector() {
     </div>
     {reportOpen && advanced && <AdvancedReport report={advanced} onClose={() => setReportOpen(false)} />}
     {(error || notice) && <div role={error ? 'alert' : 'status'} className={`feedback ${error ? 'error' : ''}`}>{error || notice}<button onClick={() => { setError(''); setNotice(''); }} aria-label="通知を閉じる"><X size={14} /></button></div>}
-    <div className="method-note"><Info size={13} /><p>{<>{provider}の結果は参考情報です。<a href={reviewMode ? 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html' : 'https://copyleaks.com/privacy-policy'} target="_blank" rel="noreferrer">提供元のプライバシー <ArrowUpRight size={11} /></a>{service?.sandbox && <strong> テストモード：固定応答が返されます。実際の判定ではありません。</strong>}</>}</p></div>
+    <div className="method-note"><Info size={13} /><p>AI大規模言語モデルによる分析結果は参考情報です。<a href={reviewMode ? 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html' : 'https://copyleaks.com/privacy-policy'} target="_blank" rel="noreferrer">提供元のプライバシー <ArrowUpRight size={11} /></a>{service?.sandbox && <strong> テストモード：固定応答が返されます。実際の判定ではありません。</strong>}</p></div>
   </section>;
 }
