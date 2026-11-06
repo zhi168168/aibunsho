@@ -50,7 +50,7 @@ test('DeepSeek requests JSON and returns only excerpts present in the actual inp
   assert.equal(result.score, null);
   assert.equal(result.observations.length, 1);
   assert.equal(result.provider, 'DeepSeek');
-  assert.ok(modelReport(result).includes('AI生成確率や検出精度ではありません'));
+  assert.ok(modelReport(result).includes('AIが書いた確率を表すものではありません'));
 });
 test('DeepSeek rejects malformed and truncated outputs', async () => {
   for (const content of [{ ...validReview, score: 101 }, { ...validReview, score: '50' }, { ...validReview, assessment: 'human' }, null]) {

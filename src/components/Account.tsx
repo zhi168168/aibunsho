@@ -133,7 +133,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
       <span className="section-index">PLANS & PRICING</span><h2>文章を、もっと深く理解する。</h2><p>無料の基本分析から、原文の根拠・解説・改善案をまとめた詳細レポートへ。</p>
       {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
-        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>AIレビューの総合スコア</li><li><Check size={15}/>構成・表現・具体性・一貫性の4項目</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker">無料でチェック →</a></article>
+        <article className="pricing-card"><h3>Free</h3><p className="price">$0</p><p>文章の特徴を手軽に確認</p><ul><li><Check size={15}/>わかりやすい結論と説明</li><li><Check size={15}/>原文の引用と理由・4項目の評価</li><li><Check size={15}/>登録不要（回数制限あり）</li></ul><a className="text-link" href="#checker">無料でチェック →</a></article>
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
           <h3>{plan.name}</h3><p className="price">${plan.price}<small> / 月</small></p><p className="intro-price">初月（30日間） ${plan.first}<br/><small>初回の有料契約のみ。以降 ${plan.price}/月</small></p>
           <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>完全な詳細レポート</li><li><Check size={15}/>原文を引用した詳しい説明</li><li><Check size={15}/>改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>

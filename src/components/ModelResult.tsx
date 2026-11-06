@@ -1,12 +1,13 @@
 import { AlertTriangle, ArrowDownToLine, Check, Copy } from 'lucide-react';
-import { dimensionNames, type ModelResult as ModelResultType } from '../lib/model';
+import { dimensionNames, observationLabels, reviewConclusions, reviewScoreNote, type ModelResult as ModelResultType } from '../lib/model';
 export default function ModelResult({ result, copied, onCopy, onDownload }: { result: ModelResultType; copied: boolean; onCopy: () => void; onDownload: () => void }) {
   if (result.provider === 'DeepSeek') {
-    const labels = { uncertain: '判断材料が不足・不確実', few_patterns: '定型的な特徴は少ない', mixed_patterns: '特徴が混在しています', many_patterns: '複数の定型的な特徴があります' };
     return <div className="model-result deepseek-result">
-      <div className="score-block"><div className={`score-ring ${result.score === null ? 'score-withheld' : ''}`} style={{ '--score': `${result.score ?? 0}%` } as React.CSSProperties}><span><b>{result.score ?? '—'}</b><small>{result.score === null ? '保留' : '/ 100'}</small></span></div><div><span className="score-label">AIらしさの参考スコア</span><h2>{labels[result.assessment]}</h2><p>AI生成確率ではありません。特徴が少なくても人間の証明にはなりません。</p></div></div>
-      <div className="review-dimensions" aria-label="4項目の文体レビュー">{result.dimensions.map(d => <details key={d.id}><summary>{dimensionNames[d.id]}<span>{d.score} / 100</span></summary><p>{d.explanation}</p></details>)}</div>
-      <p className="review-scale-note">項目スコアは定型的な文体特徴の強さです。検出確率ではなく、単純平均もしません。</p>
+      <div className="review-verdict"><span className="report-eyebrow">この文章について</span><h2>{reviewConclusions[result.assessment]}</h2><p>{result.summary}</p></div>
+      <p className="review-caveat">文章の特徴をもとにした参考意見です。AIが書いたかどうかは断定できません。</p>
+      <section className="review-evidence" aria-label="原文と、その理由"><h3>どこを見て、そう考えた？</h3>{result.observations.length ? result.observations.map((o, i) => <article className={`review-example direction-${o.direction}`} key={i}><span>{observationLabels[o.direction]}</span><blockquote>{o.text}</blockquote><p>{o.reason}</p></article>) : <p className="review-empty-evidence">原文を引用した説明を取得できませんでした。下の項目別の説明を参考にしてください。</p>}</section>
+      <details className="review-score-details" open={result.observations.length === 0}><summary>数値の内訳と、4つの観点を見る</summary><p>{reviewScoreNote}</p><p className="review-overall-score">文体の参考スコア：<strong>{result.score === null ? '今回は算出を保留' : `${result.score} / 100`}</strong>{result.score === null && <small>短さや根拠不足、異なる特徴の混在により、数値を出せるだけの判断材料がそろいませんでした。</small>}</p><div className="review-dimension-explanations" aria-label="4項目の文体レビュー">{result.dimensions.map(d => <article key={d.id}><h4>{dimensionNames[d.id]}<span>{d.score} / 100</span></h4><p>{d.explanation}</p></article>)}</div></details>
+      {result.limitations.length > 0 && <details className="review-limits"><summary>今回の確認で分からないこと</summary><ul>{result.limitations.map((item, i) => <li key={i}>{item}</li>)}</ul></details>}
       <div className="report-actions"><span>DeepSeek · {result.modelVersion}</span><button className="icon-button" onClick={onCopy} aria-label={copied ? 'コピーしました' : 'レポートをコピー'}>{copied ? <Check size={15} /> : <Copy size={15} />}</button><button className="icon-button" onClick={onDownload} aria-label="レポートをダウンロード"><ArrowDownToLine size={15} /></button></div>
     </div>;
   }
