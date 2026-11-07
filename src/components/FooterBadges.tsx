@@ -17,6 +17,9 @@ const badges = [
   { name: 'Startup Fame', href: 'https://startupfa.me/', image: 'https://startupfa.me/badges/featured-badge-small.webp', alt: 'Featured on Startup Fame', width: 224, height: 36 },
   { name: 'MakeItLast', href: 'https://www.makeitla.st/', image: 'https://www.makeitla.st/badge/makeitlast-badge-dark.svg?v=3', alt: 'Featured on MakeItLast', title: 'Featured on MakeItLast', width: 252, height: 76 },
   { name: 'CodeTrendy', href: 'https://codetrendy.com/?utm_source=partner-site&utm_medium=badge', image: 'https://codetrendy.com/api/badge?style=classic', alt: 'Listed on CodeTrendy', height: 54, rel: 'nofollow noopener noreferrer' },
+  { name: 'SumoDir', href: 'https://sumodir.com', image: 'https://sumodir.com/badge.png', alt: 'Featured on SumoDir', width: 200, height: 54, rel: 'dofollow noopener' },
+  { name: 'Featured on Aura++', href: 'https://auraplusplus.com/projects/ai-checker' },
+  { name: 'ScrollLaunch', href: 'https://www.scrolllaunch.com/products/ai-checker?ref=badge', image: 'https://www.scrolllaunch.com/api/badge/ai-checker?variant=launched&theme=light', alt: 'AI Checker - Featured on ScrollLaunch', width: 220, height: 48 },
 ];
 
 export default function FooterBadges() {
