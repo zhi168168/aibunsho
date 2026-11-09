@@ -1,6 +1,6 @@
 import { pages } from '../src/pages';
 
-export function siteMetadata(site?: string, path = '/', title = 'AIチェッカー｜日本語の文章を無料・登録不要でチェック') {
+export function siteMetadata(site?: string, path = '/', title = 'AIチェッカー｜日本語の文章をAI判定・スコアと理由を確認') {
   if (!site) return { head: '', sitemap: null, robots: 'User-agent: *\nAllow: /\nDisallow: /api/\n' };
   const url = new URL(site);
   if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('SITE_URL must be an HTTPS origin without path, credentials, or query.');
