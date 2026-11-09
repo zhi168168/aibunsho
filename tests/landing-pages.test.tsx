@@ -8,15 +8,22 @@ test('each search landing exposes the real tool before its unique explanatory co
   for (const page of landingPages) {
     const html = renderToStaticMarkup(<InformationPage path={page.path}/>);
     assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
-    assert.ok(html.includes(page.heading));
+    assert.equal(html.match(/<h1[^>]*>(.*?)<\/h1>/s)?.[1].replace(/<[^>]+>/g, ''), page.heading);
     assert.ok(html.includes('id="check-text"'));
     assert.ok(html.includes(page.action));
-    assert.ok(html.indexOf('id="checker"') < html.indexOf('id="topic-1"'));
+    if (page.intent === 'support') {
+      assert.ok(html.indexOf('id="topic-1"') < html.indexOf('id="checker"'));
+      assert.ok(html.indexOf('id="explanation-draft"') < html.indexOf('id="checker"'));
+      assert.ok(html.includes('まずは、この3つから'));
+    } else assert.ok(html.indexOf('id="checker"') < html.indexOf('id="topic-1"'));
     assert.ok(html.includes('id="pricing"'), 'Shared account and pricing dialogs must exist');
     assert.doesNotMatch(html, /準備中/);
     const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
     for (const [, id] of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.has(id), `Missing ${page.path}#${id}`);
-    for (const related of landingPages.filter(other => other.path !== page.path)) assert.ok(html.includes(`href="${related.path}"`));
+    for (const { reading } of page.sections) if (reading) {
+      assert.ok(landingPages.some(other => other.path === reading.href));
+      assert.ok(html.includes(`href="${reading.href}"`));
+    }
     const schema = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)![1]);
     assert.deepEqual(schema.mainEntity.map((item: { name: string; acceptedAnswer: { text: string } }) => [item.name, item.acceptedAnswer.text]), page.faqs);
     assert.ok(page.sections.length >= 5);

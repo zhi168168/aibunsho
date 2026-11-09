@@ -7,6 +7,7 @@ const targets = [
   { path: '/free/', keyword: 'aiチェッカー 無料', phrases: ['無料AIチェッカー', 'AIチェッカー無料'] },
   { path: '/hantei/', keyword: 'ai 文章 判定', phrases: ['AI文章判定'] },
   { path: '/kenshutsu/', keyword: 'ai検出ツール', phrases: ['AI検出ツール'] },
+  { path: '/gohantei/', keyword: 'aiチェッカー 自分で書いたのに', phrases: ['AIチェッカーで「自分で書いたのに」', '自分で書いたのにAIチェッカー'] },
 ];
 const normalize = text => text.normalize('NFKC').toLowerCase().replace(/\s/g, '');
 const report = targets.map(({ path, keyword, phrases }) => {

@@ -1,3 +1,5 @@
+import { falsePositivePage } from './false-positive-content';
+
 export type LandingSection = {
   heading: string;
   paragraphs?: string[];
@@ -5,10 +7,15 @@ export type LandingSection = {
   table?: { caption: string; headers: string[]; rows: string[][] };
   example?: { text: string; explanation: string };
   reading?: { before: string; href: string; label: string; after: string };
+  checklist?: string[];
+  template?: string;
 };
 export type LandingContent = {
   path: string; title: string; description: string; label: string;
   heading: string; intro: string; benefits: string[]; action: string;
+  headingSegments?: string[];
+  intent?: 'support';
+  supportSummary?: { heading: string; steps: string[] };
   sections: LandingSection[]; faqs: [string, string][];
 };
 
@@ -81,7 +88,7 @@ export const landingPages: LandingContent[] = [
         text: '「AIは教育現場で重要な役割を果たしています。」',
         explanation: '読み方を説明するための例文です。実際の分析結果ではありません。「重要な役割」の中身がこの一文にはありませんが、次の段落に具体例があれば、導入として自然な場合もあります。',
       }, paragraphs: ['AI文章判定でこのような表現が気になったら、前後に事例があるか、主張に出典があるか、読者に説明が伝わるかを確認します。定型句があるという理由だけで、必ず削除する必要はありません。'] },
-      { heading: '人の文章でも、指摘されることがある', reading: { before: 'ご自身の文章で試す前に、', href: '/free/', label: '登録不要の無料チェックでできること', after: 'を確認できます。文字数や無料で表示される結果をご案内しています。' }, paragraphs: [
+      { heading: '人の文章でも、指摘されることがある', reading: { before: '自分の文章が疑われて困っている方へ、', href: '/gohantei/', label: '自分で書いたのにAIチェッカーで指摘されたときの対処法', after: 'を整理しました。資料の残し方と説明文の例を確認できます。' }, paragraphs: [
         '報告書や説明文では、人も決まった構成や丁寧な文末を使います。専門用語の反復や統一した書式も、読みやすさのために必要な場合があります。AI文章判定の結果だけで、書き手を評価しないでください。',
       ], list: ['指摘箇所を、前後の段落まで含めて読み直す。', '引用元、メモ、下書き、修正履歴などを確認する。', '根拠や説明が足りない部分を見直し、必要な表現は残す。'] },
     ],
@@ -137,4 +144,5 @@ export const landingPages: LandingContent[] = [
       ['機密情報を含む文章を確認してもよいですか？', '外部送信を伴うため、機密情報や個人情報を含む文章の送信は避けてください。組織の情報管理ルールも確認してください。'],
     ],
   },
+  falsePositivePage,
 ];
