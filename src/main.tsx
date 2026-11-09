@@ -2,6 +2,7 @@ import { hydrateRoot, createRoot } from 'react-dom/client';
 import App from './App';
 import { InformationPage, pages } from './pages';
 import './styles.css';
+import './components/tool-landing.css';
 const root = document.getElementById('root')!;
 const path = window.location.pathname.replace(/\/?$/, '/');
 const page = pages.some(page => page.path === path) ? <InformationPage path={path} /> : <App />;

@@ -9,7 +9,7 @@ import AnalysisLoading, { type AnalysisPhase } from './AnalysisLoading';
 import AdvancedReport from './AdvancedReport';
 import type { AdvancedReport as AdvancedReportType } from '../lib/advanced-report';
 
-export default function Detector() {
+export default function Detector({ actionLabel = '無料でチェックを開始' }: { actionLabel?: string } = {}) {
   const [text, setText] = useState('');
   const [service, setService] = useState<ServiceStatus | null>(null);
   const [serviceError, setServiceError] = useState(false);
@@ -143,7 +143,7 @@ export default function Detector() {
         <div className="editor-meta"><span id="text-limits" className={count > MAX_CHARS ? 'over-limit' : ''}><b>{count.toLocaleString('ja-JP')}</b> / 10,000 文字</span><button className="icon-button" onClick={() => { updateText(''); editorRef.current?.focus(); }} aria-label="文章をクリア" disabled={!text}><Trash2 size={15} /></button></div>
         <div className="editor-actions"><button className="upload-button" onClick={() => fileRef.current?.click()}><Upload size={15} /> TXT・Word を読み込む</button><span>{minimum}文字以上</span><input ref={fileRef} type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onFileChange} hidden aria-label="TXT・Wordファイルを選択" /></div>
         <p className="import-hint">TXT・Word（.docx）対応。ファイルをここにドラッグしても読み込めます。</p>
-        <div className="check-actions"><button className="primary-button" disabled={busy || advancedBusy || count < minimum || count > MAX_CHARS || (!service?.configured)} onClick={() => void runAnalysis()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ScanLine size={17} />} {busy ? '分析しています' : service?.sandbox ? 'テスト判定を開始' : '無料でチェックを開始'}<ArrowRight size={16} /></button><small>登録不要・無料</small></div>
+        <div className="check-actions"><button className="primary-button" disabled={busy || advancedBusy || count < minimum || count > MAX_CHARS || (!service?.configured)} onClick={() => void runAnalysis()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ScanLine size={17} />} {busy ? '分析しています' : service?.sandbox ? 'テスト判定を開始' : actionLabel}<ArrowRight size={16} /></button><small>登録不要・無料</small></div>
         <div className="check-privacy"><span><LockKeyhole size={13} /> {`開始すると文章が${provider}に送信されます。${reviewMode ? '入力と生成結果をWaffoで内容確認します。' : ''}`}</span></div>
       </div>
       <div className="results-pane" aria-busy={busy}>

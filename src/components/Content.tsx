@@ -1,3 +1,4 @@
+import { LandingLinks } from './ToolLanding';
 import { ArrowRight, ArrowUpRight, ChevronDown, FileCheck2, Fingerprint, LockKeyhole, ScanText } from 'lucide-react';
 export const faqs = [
   ['AIチェッカーとは何ですか？', '日本語の文体・規則性・繰り返しを確認するツールです。文章だけでAI使用を確定することはできません。'],
@@ -14,6 +15,7 @@ export default function Content() {
     <section className="section guide-section" id="analysis-modes"><span className="section-index">03 / CHOOSE YOUR CHECK</span><h2>無料チェックと詳細レポートの違い</h2><p>無料では結論と主な理由を手軽に確認できます。全文を詳しく見直したいときや改善案が欲しいときは、Basic・Proの詳細レポートをご利用ください。</p><div className="comparison-wrap" role="region" aria-label="プランの比較" tabIndex={0}><table><caption>無料とBasic・Proで確認できること</caption><thead><tr><th scope="col">確認できること</th><th scope="col">無料</th><th scope="col">Basic・Pro</th></tr></thead><tbody><tr><th scope="row">参考スコア・主な理由</th><td>利用できます</td><td>無料チェックも利用できます</td></tr><tr><th scope="row">原文の引用と詳しい理由</th><td>主な理由の要約のみ</td><td>全文を区分ごとに確認し、詳しく説明</td></tr><tr><th scope="row">改善案・書き換え例</th><td>含まれません</td><td>必要な箇所に提案</td></tr><tr><th scope="row">利用条件</th><td>登録不要・回数制限あり</td><td>月間語数の範囲で利用</td></tr></tbody></table></div><p>スコアはAI生成確率や執筆者の証明ではありません。送信先と<a href="#privacy">プライバシーの扱い</a>をご確認ください。</p></section>
     <section className="section guide-section" id="use-cases"><span className="section-index">04 / READ WITH CONTEXT</span><h2>レポート・記事をチェックするときの確認ポイント</h2><div className="guide-grid"><article><h3>レポートや作文の確認</h3><p>まず出典と事実関係を確認し、気になる文の指摘を読みます。規則的な文章は人も書くため、スコアだけでAI使用を判断せず、下書きや修正履歴も確認してください。</p></article><article><h3>ブログ・記事の推敲</h3><p>同じ文末や定型句の反復を見つける手がかりにできます。自分の説明や具体例が十分かを見直し、数値を下げることだけを目的に書き換えないでください。</p></article><article><h3>結果の読み方の例</h3><p>「重要な役割を果たしています」という表現が指摘されても、それだけでAI文章とはいえません。前後の文脈や具体性を確認し、必要な表現ならそのまま残します。</p></article></div><p><a className="text-link" href="/ai-checker/guide/">AIチェッカーの詳しい使い方・分析方法・参考資料 <ArrowUpRight size={15} /></a></p></section>
     <section className="faq-section section" id="faq"><div><span className="section-index">05 / QUESTIONS & ANSWERS</span><h2>AIチェッカーのよくある質問</h2><p className="muted">安心して使うために、<br />知っておきたいこと。</p></div><div className="faq-list">{faqs.map(([question, answer]) => <details key={question}><summary>{question}<ChevronDown size={17} /></summary><p>{answer}</p></details>)}</div></section>
+    <section className="section home-landing-links"><h2>目的に合わせて、文章をチェック</h2><p>無料の利用条件、結果の読み方、ツールの対応範囲を確認できます。どのページからも、そのまま文章をチェックできます。</p><LandingLinks /></section>
     <section className="closing"><h2>あなたの言葉を、もっと確かに。</h2><a href="#checker">文章をチェックする <ArrowRight size={17} /></a></section>
   </>;
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const paths = ['/', '/pricing/', '/ai-checker/guide/', '/privacy/'];
+const paths = ['/', '/free/', '/hantei/', '/kenshutsu/', '/pricing/', '/ai-checker/guide/', '/privacy/'];
 const results = [];
 for (const path of paths) {
   const html = readFileSync(`dist${path}index.html`, 'utf8');

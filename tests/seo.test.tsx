@@ -49,7 +49,7 @@ test('information pages have distinct canonical URLs, real cross-page links and 
     const html = renderToStaticMarkup(<InformationPage path={page.path} />);
     assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
     assert.ok(html.includes('href="/#checker"'));
-    assert.ok(!html.includes('FAQPage'));
+    if (!['/free/', '/hantei/', '/kenshutsu/'].includes(page.path)) assert.ok(!html.includes('FAQPage'));
     const metadata = siteMetadata('https://aibunsho.com', page.path, page.title);
     assert.ok(metadata.head.includes(`rel="canonical" href="https://aibunsho.com${page.path}"`));
     const graph = JSON.parse(metadata.head.match(/application\/ld\+json">(.*?)<\/script>/s)![1])['@graph'];

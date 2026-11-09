@@ -1,14 +1,19 @@
 import FooterBadges from './components/FooterBadges';
 import { policies } from './App';
 import PricingDetails from './components/PricingDetails';
+import ToolLanding from './components/ToolLanding';
+import { landingPages } from './landing-content';
 
 export const pages = [
+  ...landingPages,
   { path: '/pricing/', title: '料金プラン・月額詳細レポート｜AIチェッカー', description: 'Basicは月額9.99米ドル・初月4.99米ドル・月6万語。Proは月額29.99米ドル・初月14.99米ドル・月26万語。自動更新、解約、利用語数の条件をご確認ください。' },
   { path: '/ai-checker/guide/', title: 'AIチェッカーの使い方・スコアの読み方｜日本語文章ガイド', description: 'AIチェッカーの入力方法、無料チェックと詳細レポートの違い、スコアの限界を解説。日本語のレポートや記事を見直す具体例と参考資料を確認できます。' },
   { path: '/privacy/', title: 'プライバシーポリシー・利用条件｜AIチェッカー', description: 'AIチェッカーの入力文章の扱い、外部サービスへの送信、保存方針と利用条件を説明します。文章の送信先と利用条件をご確認ください。' },
 ];
 
 export function InformationPage({ path }: { path: string }) {
+  const landing = landingPages.find(page => page.path === path);
+  if (landing) return <ToolLanding page={landing} />;
   const page = pages.find(page => page.path === path)!;
   return <>
     <header className="site-header"><a href="/">AIチェッカー</a><nav className="information-nav" aria-label="ページナビゲーション"><a href="/ai-checker/guide/">使い方ガイド</a><a href="/privacy/">プライバシー</a></nav></header>
@@ -25,10 +30,13 @@ export function InformationPage({ path }: { path: string }) {
       </> : <>
         <p>AIチェッカーは、日本語の文章に見られる文体の規則性や反復を確認するツールです。チェックはホームの入力欄で行えます。</p>
         <h2>無料でチェックする</h2><ol className="source-links"><li>100〜10,000文字の文章を貼り付けるか、TXT・Word（.docx）ファイルを読み込みます。</li><li>送信先を確認し、「無料でチェックを開始」を押します。</li><li>結論と主な理由を確認します。原文ごとの詳しい説明や改善案は、結果下部の「詳細分析レポートを見る」から確認できます。</li></ol><p>無料チェックは登録不要で、回数制限があります。本文をDeepSeekへ送り、入力と生成結果をWaffoで内容確認します。材料が足りない場合は総合スコアを保留します。送信前に<a href="/privacy/">プライバシーポリシー</a>をご確認ください。</p>
+        <p>文字数や無料で表示される結果は、<a href="/free/">無料チェックの利用範囲と始め方</a>で確認できます。</p>
         <h2>詳細レポートを読む</h2><p>Basic・Proでは、全体の評価、気になる一文、その理由と改善案を確認できます。問題のない箇所は「そのまま残してよいところ」にまとめています。改善が必要な場合に書き換え例を提案します。すべての文章に修正を勧めるわけではありません。</p><p>作成時は無料チェックとは別に全文を送信し、成功した全文の語数を月間枠から消費します。確認できなかった箇所はその旨を表示します。書き換え例は自動適用されません。「TXT保存」または「印刷 / PDF保存」で保存できます。入力変更・再読み込みで結果は消えます。</p>
         <h2>スコアを読むときの確認ポイント</h2><p>AIレビューはモデルによる参考評価です。スコアはAI生成確率や、ChatGPTを使用した証拠ではありません。人が書いた定型文にも規則性があり、翻訳や書き直しによって特徴は変わります。</p><h3>レポート・作文の例</h3><p>同じ文末が続いていても、それだけでAI使用とは判断できません。引用元、事実関係、下書きや修正履歴を併せて確認してください。</p><h3>ブログ・記事の例</h3><p>「重要な役割を果たしています」と指摘された場合は、前後の文脈と具体例を確認します。必要な表現は残し、スコアを下げることだけを目的に書き換えないでください。</p>
+        <p>実際の例文を使った解説は、<a href="/hantei/">AI文章判定の参考スコアを読み解く方法</a>をご覧ください。</p>
         <h2>分析方法と参考資料</h2><p>既知の正解データに対する検出精度は検証していません。DeepSeekレビューは文章生成APIによる補助評価で、専用のAI検出器ではありません。ウェブ上の文章との照合や盗作判定も行いません。</p><ul className="source-links"><li><a href="https://api-docs.deepseek.com/api/create-chat-completion">DeepSeek API公式ドキュメント</a>：レビューに使う文章生成APIの仕様。</li><li><a href="https://github.com/eric-mitchell/detect-gpt">DetectGPTの研究実装</a>：モデルの確率を利用した研究。当サイトではこの手法は実装していません。</li></ul>
       </>}
+      {path === '/ai-checker/guide/' && <p>盗作チェックとの違いや対象言語を確認するには、<a href="/kenshutsu/">日本語文章のAI検出ツールを選ぶ基準</a>をご確認ください。</p>}
       <p><a className="text-link" href="/#checker">無料のAIチェッカーで文章をチェックする →</a></p>
     </article></main>
     <footer className="site-footer"><a href="/">AIチェッカー</a><div className="footer-links"><a href="/ai-checker/guide/">使い方ガイド</a><a href="/privacy/">プライバシー・利用条件</a></div><FooterBadges /></footer>
