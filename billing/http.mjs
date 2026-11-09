@@ -9,7 +9,7 @@ export function mountBilling(app, accounts, settings, billing) {
     res.set("Cache-Control", "no-store");
     if (!billing)
       return res.status(503).json({
-        error: "決済サービスは準備中です。",
+        error: "現在決済サービスをご利用いただけません。時間をおいて再度お試しください。",
       });
     if (
       req.path !== "/webhook" &&

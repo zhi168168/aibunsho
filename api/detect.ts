@@ -104,11 +104,11 @@ export async function handleDetection(req: IncomingMessage & { body?: unknown },
     if (advancedRequest) {
       let runtime;
       try { runtime = await getRuntime(env); } catch { throw new DetectionError(503, 'アカウントサービスに接続できません。'); }
-      if (!runtime) throw new DetectionError(503, '詳細レポートのアカウントサービスは準備中です。');
+      if (!runtime) throw new DetectionError(503, '詳細レポートのアカウントサービスに接続できません。時間をおいて再度お試しください。');
       const session = await runtime.accounts.auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
       if (!session?.user?.id) throw new DetectionError(401, '詳細レポートを作成するにはログインしてください。');
       if (!session.user.emailVerified) throw new DetectionError(403, 'メールアドレスを確認してください。');
-      if (!runtime.billing) throw new DetectionError(503, '詳細レポートの決済サービスは準備中です。');
+      if (!runtime.billing) throw new DetectionError(503, '詳細レポートの決済サービスに接続できません。時間をおいて再度お試しください。');
       await runtime.billing.processEvents();
       await runtime.billing.refresh(session.user.id);
       const id = randomUUID();
@@ -130,7 +130,7 @@ export async function handleDetection(req: IncomingMessage & { body?: unknown },
     const requestId = randomUUID();
     if (useDeepSeek && env.CONTENT_SAFETY_ENABLED === 'true') {
       const runtime = await getRuntime(env);
-      if (!runtime) throw new DetectionError(503, '内容確認サービスは準備中です。');
+      if (!runtime) throw new DetectionError(503, '内容確認サービスに接続できません。時間をおいて再度お試しください。');
       safety = createContentSafety(env,new BillingStore(runtime.accounts.database,runtime.config.local));
       try { await safety(body.text,'input',requestId); }
       catch (error) { const e=error as Error & {status?:number}; throw new DetectionError(e.status||503,e.status?e.message:'内容確認サービスに接続できません。'); }

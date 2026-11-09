@@ -152,7 +152,7 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
         <button disabled={busy} onClick={()=>void action(refresh)}>契約情報を再確認</button></div>
       </div> : <div className="account-box">
         {['login','register'].includes(view) && <div className="account-tabs" aria-label="ログイン・新規登録"><button type="button" aria-pressed={view==='login'} disabled={busy} onClick={()=>{setView('login');setMessage('');}}>ログイン</button><button type="button" aria-pressed={view==='register'} disabled={busy} onClick={()=>{setView('register');setMessage('');}}>新規登録</button></div>}
-        {!config?.configured && <p role="status">ログインサービスは準備中です。無料チェックは引き続き利用できます。</p>}
+        {config?.configured === false && <p role="status">現在ログインをご利用いただけません。時間をおいて再度お試しください。無料チェックは引き続き利用できます。</p>}
         {['login','register'].includes(view) && <><button className="google-signin" disabled={busy||!config?.google} onClick={()=>void action(async()=>{
           const result=await api('auth/sign-in/social',{provider:'google',callbackURL:`${window.location.origin}/#${resumePricing.current?'pricing':'account'}`,errorCallbackURL:`${window.location.origin}/?error=auth#account`});secureNavigate(result.url,true);
         })}><GoogleIcon />Googleで続ける</button><div className="account-divider">またはメールアドレスで</div></>}
@@ -173,12 +173,12 @@ export default function Account({ onUserChange }: { onUserChange?: (signedIn: bo
       <header className="pricing-dialog-heading"><div><h2 id="pricing-title">料金プランを選ぶ</h2><p>詳しい説明・改善案・書き換え例はBasic・Proで。<a href="#checker" onClick={()=>setPricingOpen(false)}>無料チェックを続ける →</a></p></div><button className="icon-button" onClick={()=>setPricingOpen(false)} aria-label="料金プランを閉じる"><X size={20}/></button></header>
       <div className={`pricing-consent-panel ${agreed?'is-agreed':''}`}><label className="purchase-consent"><input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} aria-describedby="pricing-consent-help"/><span><strong>はじめに、購入条件をご確認ください</strong><span><a href="/privacy/#billing" target="_blank" rel="noreferrer">購入条件</a>を確認し、初月終了後は選択プランの通常月額で自動更新されることに同意します。</span></span></label><p id="pricing-consent-help" role="status">{agreed?'同意済みです。下からプランを選べます。':'上のチェックを入れると、下の申し込みボタンが有効になります。'}</p></div>
       <div className="pricing-dialog-content">
-      {status && !config?.checkoutEnabled && <p className="account-message">購入受付は準備中です。無料チェックをご利用いただけます。</p>}
+      {config?.checkoutEnabled === false && <p className="account-message">現在、有料プランの新規購入は受け付けていません。無料チェックをご利用いただけます。</p>}
       <div className="pricing-grid">
         {([{id:'basic',name:'Basic',price:'9.99',first:'4.99',words:'60,000'},{id:'pro',name:'Pro',price:'29.99',first:'14.99',words:'260,000'}]).map(plan=><article key={plan.id} className={`pricing-card ${plan.id==='pro'?'featured':''}`}>
           <h3>{plan.name}</h3><p className="price">${status?.introductoryEligible===false?plan.price:plan.first}<small>{status?.introductoryEligible===false?' / 月':' / 初月（30日間）'}</small></p><p className="intro-price">{status?.introductoryEligible===false?'通常の月額プラン':`2か月目以降 $${plan.price} / 月`}<br/><small>{status?.introductoryEligible===false?'初月割引は初回の有料契約のみ対象です。':'初月価格は初回の有料契約のみ。以降は通常月額で自動更新。'}</small></p>
           <ul><li><Check size={15}/><strong>{plan.words} 語 / 月</strong></li><li><Check size={15}/>原文の詳しい説明・改善案・書き換え例</li><li><Check size={15}/>TXT保存・印刷 / PDF保存</li></ul>
-          <button className="primary-button" aria-describedby={!agreed?'pricing-consent-help':undefined} disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?.checkoutEnabled?'購入受付準備中':`${plan.name}を申し込む`}</button>
+          <button className="primary-button" aria-describedby={!agreed?'pricing-consent-help':undefined} disabled={busy||loading||!config?.checkoutEnabled||Boolean(user&&!status)||Boolean(status?.hasSubscription)||!agreed} onClick={()=>void checkout(plan.id)}>{status?.plan===plan.id?'ご利用中':!config?'プランを確認しています…':!config.checkoutEnabled?'新規購入の受付停止中':`${plan.name}を申し込む`}</button>
           {!agreed && <small className="plan-consent-hint">上の購入条件にチェックしてから選択</small>}
         </article>)}
       </div>

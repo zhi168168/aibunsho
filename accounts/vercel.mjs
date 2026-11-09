@@ -8,7 +8,7 @@ export function createAccountHandler(env = process.env) {
       if (runtime) return runtime.app(req,res);
       res.setHeader('Content-Type','application/json');
       if (req.url.split('?')[0] === '/api/auth/config') return res.end(JSON.stringify(capabilities(null)));
-      res.statusCode=503;res.end(JSON.stringify({message:'アカウントサービスは準備中です。'}));
+      res.statusCode=503;res.end(JSON.stringify({message:'現在アカウントサービスをご利用いただけません。時間をおいて再度お試しください。'}));
     } catch {
       res.statusCode=503;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({message:'アカウントサービスに接続できません。'}));
     }

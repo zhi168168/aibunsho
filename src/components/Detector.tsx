@@ -12,6 +12,7 @@ import type { AdvancedReport as AdvancedReportType } from '../lib/advanced-repor
 export default function Detector() {
   const [text, setText] = useState('');
   const [service, setService] = useState<ServiceStatus | null>(null);
+  const [serviceError, setServiceError] = useState(false);
   const [modelResult, setModelResult] = useState<ModelResultType | null>(null);
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState<AnalysisPhase>('reading');
@@ -32,7 +33,13 @@ export default function Detector() {
   const reviewMode = provider === 'DeepSeek';
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/detect', { signal: controller.signal }).then(r => r.ok ? r.json() : null).then(data => { if (data && typeof data.configured === 'boolean') setService(data); }).catch(() => {});
+    fetch('/api/detect', { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) })
+      .then(r => { if (!r.ok) throw new Error('Service status unavailable'); return r.json(); })
+      .then(data => {
+        if (typeof data?.configured !== 'boolean') throw new Error('Invalid service status');
+        setService(data);
+      })
+      .catch(() => { if (!controller.signal.aborted) setServiceError(true); });
     return () => controller.abort();
   }, []);
 
@@ -128,7 +135,7 @@ export default function Detector() {
   function onDrop(event: DragEvent) { event.preventDefault(); setDragging(false); void loadFile(event.dataTransfer.files[0]); }
 
   return <section id="checker" className={`detector ${dragging ? 'dragging' : ''}`} aria-label="AIチェッカー 文章分析ツール" onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false); }} onDrop={onDrop}>
-    <div className="detector-toolbar"><span className="tool-name"><ScanLine size={16} /> テキストチェッカー</span><span className="local-status"><i /> {service?.configured ? service.sandbox ? 'テストモード' : '無料AIレビュー' : '準備中'}</span></div>
+    <div className="detector-toolbar"><span className="tool-name"><ScanLine size={16} /> テキストチェッカー</span><span className="local-status"><i /> {service?.configured ? service.sandbox ? 'テストモード' : '無料AIレビュー' : serviceError || service?.configured === false ? '接続を確認できません' : 'テキスト分析'}</span></div>
     <div className="workspace">
       <div className="editor-pane">
         <div className="pane-heading"><label htmlFor="check-text">チェックする文章</label></div>
@@ -142,7 +149,7 @@ export default function Detector() {
       <div className="results-pane" aria-busy={busy}>
         <div className="pane-heading"><span>分析結果</span><span className={`result-status ${modelResult ? 'done' : ''}`}>{busy ? '分析中' : modelResult ? '分析完了' : '入力待ち'}</span></div>
         <div className="results-content" aria-live="polite">
-          {!modelResult && !busy && <div className="empty-result"><div className="scan-illustration" aria-hidden="true"><span className="scan-corner top-left" /><span className="scan-corner top-right" /><span className="scan-corner bottom-left" /><span className="scan-corner bottom-right" /><FileText size={31} strokeWidth={1.1} /><span className="scan-beam" /></div><h2>{!service?.configured ? `${reviewMode ? 'AIレビュー' : 'AI判定'}は、ただいま準備中。` : 'その文章を、もう少し深く。'}</h2><p>{!service?.configured ? <>現在、モデルサービスの接続を確認しています。<br />しばらくしてから再度お試しください。</> : <>文章を入力して、チェックを開始。<br />分析結果がここに表示されます。</>}</p><div className="empty-signal"><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /></div></div>}
+          {!modelResult && !busy && <div className="empty-result"><div className="scan-illustration" aria-hidden="true"><span className="scan-corner top-left" /><span className="scan-corner top-right" /><span className="scan-corner bottom-left" /><span className="scan-corner bottom-right" /><FileText size={31} strokeWidth={1.1} /><span className="scan-beam" /></div><h2>その文章を、もう少し深く。</h2><p>{serviceError || service?.configured === false ? <>分析サービスに接続できませんでした。<br />ページを再読み込みしてお試しください。</> : <>文章を入力して、チェックを開始。<br />分析結果がここに表示されます。</>}</p><div className="empty-signal"><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /></div></div>}
           {busy && <AnalysisLoading phase={phase} model={true} />}
           {modelResult && <ModelResult result={modelResult} copied={copied} onCopy={() => void copyReport()} onDownload={downloadReport} onAdvanced={()=>{if(advanced){setReportOpen(true);}else{upgradeTicket.current=requestRef.current;openReportUpgrade();}}} advancedBusy={advancedBusy} />}
 

@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const paths = ['/', '/ai-checker/guide/', '/privacy/'];
+const paths = ['/', '/pricing/', '/ai-checker/guide/', '/privacy/'];
 const results = [];
 for (const path of paths) {
   const html = readFileSync(`dist${path}index.html`, 'utf8');
+  assert.doesNotMatch(html, /準備中/, `${path} contains pre-launch copy`);
   const description = html.match(/name="description" content="([^"]*)"/)[1];
   const weightedLength = [...description].reduce((n, char) => n + (/[^\x00-\x7f]/.test(char) ? 2 : 1), 0);
   assert.ok(weightedLength <= 160, `${path} description exceeds 160 weighted characters`);

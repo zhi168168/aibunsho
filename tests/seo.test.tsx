@@ -13,6 +13,8 @@ test('initial HTML exposes the tool, policies, valid anchors and matching FAQ sc
   assert.match(html, /id="analysis-modes"/);
   assert.match(html, /id="privacy"/);
   assert.match(html, /DeepSeek/);
+  assert.doesNotMatch(html, /準備中/);
+  assert.match(html, /その文章を、もう少し深く。/);
   const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
   for (const [, anchor] of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.has(anchor), `Missing #${anchor}`);
   const raw = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1];

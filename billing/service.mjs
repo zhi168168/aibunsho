@@ -68,7 +68,7 @@ export function createBilling(accounts, settings, env, options = {}) {
     },
     async checkout(user, plan) {
       if (env.WAFFO_CHECKOUT_ENABLED === 'false' || (env.VERCEL && (config.environment !== 'prod' || env.WAFFO_CHECKOUT_ENABLED !== 'true')))
-        throw Object.assign(new Error('購入受付は準備中です。公開後にご利用ください。'), {status:503});
+        throw Object.assign(new Error('現在、有料プランの新規購入は受け付けていません。無料チェックをご利用ください。'), {status:503});
       if (!Object.hasOwn(plans,plan)) throw new Error('Invalid plan');
       await service.refresh(user.id);
       const order = await store.transaction(user.id, async query => {
