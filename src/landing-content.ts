@@ -14,7 +14,7 @@ export type LandingContent = {
 
 export const landingPages: LandingContent[] = [
   {
-    path: '/free/', label: '無料チェック',
+    path: '/free/', label: 'AIチェッカー 無料',
     title: '無料AIチェッカー｜登録不要・日本語の文章をチェック',
     description: '登録不要の無料AIチェッカー。100〜10,000文字の日本語をチェックし、参考スコアと主な理由を確認。無料範囲と有料レポートの違いもご案内します。',
     heading: '無料AIチェッカーで、文章をチェック。',
@@ -54,7 +54,7 @@ export const landingPages: LandingContent[] = [
     ],
   },
   {
-    path: '/hantei/', label: '判定結果の読み方',
+    path: '/hantei/', label: 'AI文章判定',
     title: 'AI文章判定｜文章の特徴・理由・スコアを確認',
     description: '日本語の文章を入力してAI文章判定の参考結果を確認。指摘される特徴、誤判定の理由、スコアの意味を具体例で解説します。AI使用を確定するものではありません。',
     heading: 'AI文章判定で、文章の特徴と理由を確認。',
@@ -92,7 +92,7 @@ export const landingPages: LandingContent[] = [
     ],
   },
   {
-    path: '/kenshutsu/', label: 'ツールの選び方',
+    path: '/kenshutsu/', label: 'AI検出ツール',
     title: 'AI検出ツール｜日本語文章を無料チェック・選び方も解説',
     description: '日本語文章向けのAI検出ツール。登録不要で参考スコアと理由を確認できます。対応範囲、料金、文章の送信先、提出前の確認ポイントもご案内します。',
     heading: '日本語の文章をチェックするAI検出ツール。',
