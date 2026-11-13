@@ -24,7 +24,6 @@ const badges = [
   { name: 'Toolsify AI Tools Directory', href: 'https://toolsify.ai/', title: 'Toolsify AI Tools Directory' },
   { name: 'AI Image Describer', href: 'https://describepicture.cc/', title: 'AI Image Describer' },
   { name: 'AI Just Works', href: 'https://aijustworks.com/tool/ai-checker', image: 'https://aijustworks.com/badge-img.php?id=317&style=light&label=listed', alt: 'Listed on AI Just Works', width: 212, height: 56, poweredBy: true },
-  { name: 'ShapelessAI', href: 'https://shapelessai.com/ai-tools/ai-checker?utm_source=aibunsho.com', title: 'AI Checker - Featured on ShapelessAI', image: 'https://shapelessai.com/brand/logo-mark.png', alt: '', shapeless: true, rel: 'noopener noreferrer' },
   { name: 'MadeWithStack', href: 'https://www.madewithstack.com', image: 'https://www.madewithstack.com/listed-on-madewithstack.svg', alt: 'Listed on MadeWithStack' },
   { name: 'TheAIToolsDir', href: 'https://theaitoolsdir.com/product/ai-checker?ref=badge', image: 'https://theaitoolsdir.com/badge/ai-checker.svg', alt: 'Featured on TheAIToolsDir', width: 182, height: 46, rel: 'dofollow noopener' },
   { name: 'KeelTools', href: 'https://keeltools.com/', image: 'https://keeltools.com/badge/keeltools-listed.svg', alt: 'Listed on KeelTools', width: 220, height: 60 },
@@ -70,10 +69,7 @@ export default function FooterBadges() {
     <div id="footer-badges" className="footer-badges" ref={viewport} tabIndex={0} aria-label="関連サイト一覧（横にスクロールできます）" onTouchStart={() => setPaused(true)} onWheel={() => setPaused(true)}>
       {badges.map(badge => {
         const link = <a key={badge.href} className={badge.image ? 'footer-badge footer-badge-image' : 'footer-badge footer-badge-text'} href={badge.href} target="_blank" rel={badge.rel || 'noopener'} title={badge.title || badge.name}>
-        {badge.shapeless ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12, height: 56, padding: '0 20px 0 14px', borderRadius: 14, background: '#f8f8f4', border: '1.5px solid #cbd9f2', boxSizing: 'border-box', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif", lineHeight: 1 }}>
-          <img src={badge.image} alt="" width={54} height={30} loading="lazy" style={{ display: 'block', height: 30, width: 'auto' }} onError={event => { event.currentTarget.hidden = true; }} />
-          <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}><span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: '#595f66' }}>FEATURED ON</span><span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.02em', color: '#08090b' }}>Shapeless<span style={{ color: '#2e66db' }}>AI</span></span></span>
-        </span> : badge.image ? <><img src={badge.image} alt={badge.alt} width={badge.width} height={badge.height} loading="lazy" onError={event => { event.currentTarget.hidden = true; }} /><span className="footer-badge-fallback">{badge.name}</span></> : badge.name}
+        {badge.image ? <><img src={badge.image} alt={badge.alt} width={badge.width} height={badge.height} loading="lazy" onError={event => { event.currentTarget.hidden = true; }} /><span className="footer-badge-fallback">{badge.name}</span></> : badge.name}
         </a>;
         return badge.poweredBy ? <div key={badge.href} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           {link}<span style={{ fontSize: 11, whiteSpace: 'nowrap' }}>Powered by <a href="https://imqrscan.com" title="IMQRScan QR Code Generator">IMQRScan</a></span>
